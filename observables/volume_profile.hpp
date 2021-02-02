@@ -1,0 +1,15 @@
+// Copyright 2018 Joren Brunekreef and Andrzej Görlich
+#pragma once
+
+#include "../observable.hpp"
+#include "../universe.hpp"
+
+class VolumeProfile : public Observable {
+public:
+	VolumeProfile(std::string id) : Observable(id) { name = "volume_profile"; }
+
+	void process();
+
+private:
+	void initialize() { }
+};
