@@ -17,7 +17,7 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {4, 1, 1};
 
-void Simulation::start(int measurements, double k0_, int targetVolume_, int target2Volume_, int seed) {
+void Simulation::start(int measurements, double k0_, double k3_s, int targetVolume_, int target2Volume_, int seed, int thermal, int ksteps, int sweeps) {
 	k0 = k0_;
 	targetVolume = targetVolume_;
 	target2Volume = target2Volume_;
@@ -30,37 +30,53 @@ void Simulation::start(int measurements, double k0_, int targetVolume_, int targ
 	}
 
 	rng.seed(seed);
-
-	k3 = 1.05 + 0.15 * k0;
-
-	tune(10000);
+	
+	k3 = k3_s;
 
 	measuring = true;
+	
+bool not_from_thermal = true; // If the input is already thermalized, skip this part 
+int maN3 = 0;		      // Moving average of N3 just for checkup purposes.
 
-	printf("vol: %d\n", Tetra::size());
-	printf("start measurements. k0: %f, k3: %f, epsilon: %f\n", k0, k3, epsilon);
+	if(not_from_thermal == true) { //PUMP up volume to the target + some moves just for spice
 
+		printf(" * * move to target 3vol * * \n");
+		while (Tetra::size() < targetVolume) {
+			moveAdd();		
+			moveShift();
+			moveShiftD();
+			moveShiftI();
+			moveShiftID();
+			moveFlip();
+		}  
+		printf(" * * done * * \n\n");
 
-	for (int i = 0; i < measurements; i++) {
-		printf("i: %d\n", i);
+		
+	}
 
-		tune(50);
-		if (observables3d.size() > 0) {
-			printf("move to target 3vol...\n");
-			while (Tetra::size() != targetVolume) attemptMove();
-			printf("done\n");
+	for (int i = 0; i < thermal; i++) {  // Number of Thermal sweeps
+		 	
 
-			prepare();
-			for (auto o : observables3d) {
-				printf("m\n");
-				o->measure();
-			}
+		printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
+		printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t ksteps: %d \n", k0, k3, epsilon,thermal, ksteps,sweeps);
+
+		
+		for (int j = 0; j < ksteps*1000; j++) { // attempt ksteps * 1000 moves
+			attemptMove();
 		}
+
+		tune();  // tune k3
+
+
+		maN3 *= i; // multiply the average with the previous i		
+		maN3 += Tetra::size(); // add the current size to the sum
+		maN3 /= (i+1);         // calculate average
+
 
 		if (target2Volume > 0) {
 			bool hit = false;
 			//hit = true;
-			printf("move to target 2vol...\n");
+			//printf("move to target 2vol...\n");
 			do {
 				attemptMove();
 				for (auto s : Universe::sliceSizes) {
@@ -70,15 +86,71 @@ void Simulation::start(int measurements, double k0_, int targetVolume_, int targ
 					}
 				}
 			} while (!hit);
-			printf("done\n");
+			//printf("done\n");
 
 			prepare();
 			for (auto o : observables2d) {
-				printf("m2d\n");
+				//printf("m2d\n");
+				o->measure();
+			}
+		}
+		else {
+			prepare();
+			for (auto o : observables3d) {
+				printf("m\n");
+				o->measure();
+			}
+
+			
+		}
+	
+
+	}
+
+
+		maN3 = 0; //re 0 moving average
+
+	for (int i = 0; i < sweeps; i++) {  // didn't change it yet
+		
+		maN3 *= i; // multiply the average with the previous i		
+		maN3 += Tetra::size(); // add the current size to the sum
+		maN3 /= (i+1);         // calculate average
+
+		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
+
+
+		for (int j = 0; j < ksteps; j++) 
+			attemptMove();
+
+		if (observables3d.size() > 0) {
+
+			prepare();
+			for (auto o : observables3d) {
+				o->measure();
+			}
+		}
+
+		if (target2Volume > 0) { 
+			bool hit = false;
+			//hit = true;
+			do {
+				attemptMove();
+				for (auto s : Universe::sliceSizes) {
+					if (s == target2Volume) {
+						hit = true;
+						break;
+					}
+				}
+			} while (!hit);
+			
+			prepare();
+			for (auto o : observables2d) {
 				o->measure();
 			}
 		}
 	}
+
+
 }
 
 
@@ -134,6 +206,8 @@ int Simulation::attemptMove() {
 			}
 		}
 	}
+
+
 
 	//Universe::check();
 
@@ -335,16 +409,40 @@ void Simulation::prepare() {
 	//Universe::check();
 }
 
-void Simulation::tune(int tuneSteps) {
-	//printf("start tune..\n");
-	printf("k0: %f\n", k0);
-	fflush(stdout);
-	std::vector<int> volumes;
-	std::vector<int> success(6, 0);
-	epsilon = 0.02;
+void Simulation::tune() { 
+
+	double loc_epsilon = 0.00001;
+
+	int border_far = targetVolume*0.5; 
+	int border_close = targetVolume*0.05;
+	int border_vclose = targetVolume*0.001; 
+
+	double ratio = 100;
+
+			
+		if ((targetVolume - Tetra::size()) > border_far) {
+			k3 -= loc_epsilon*ratio*100;
+		} else if ((targetVolume - Tetra::size()) < -border_far) {
+			k3 += loc_epsilon*ratio*100;
+		} else if ((targetVolume - Tetra::size()) > border_close) {
+			k3 -= loc_epsilon*100;
+		} else if ((targetVolume - Tetra::size()) < -border_close) {
+			k3 += loc_epsilon*100;
+		} else if ((targetVolume - Tetra::size()) > border_vclose) {
+			k3 -= loc_epsilon*10;
+		} else if ((targetVolume - Tetra::size()) < -border_vclose) {
+			k3 += loc_epsilon*10;
+		}
+
+	
+	
+	
+
+/*
 
 	bool done = false;
-	for (int k = 0; k < tuneSteps && !done; k++) {
+
+	for (int k = 0; k < 1 && !done; k++) {
 		for (int i = 0; i < targetVolume; i++) {
 			std::vector<int> tmps = sweep(100);
 			for (int j = 0; j < 6; j++) success[j] += tmps[j];
@@ -372,7 +470,8 @@ void Simulation::tune(int tuneSteps) {
 			k3 += 0.6*(avg - targetVolume)/abs((avg-targetVolume)) * epsilon;
 		}
 		volumes.clear();
-		if (k >= tuneSteps && abs(avg-targetVolume) < 0.1*targetVolume && epsilon < 0.021) done = true;
+
+		//if (k >= tuneSteps && abs(avg-targetVolume) < 0.1*targetVolume && epsilon < 0.021) done = true;
 
 		/*if ((targetVolume - avg)*(targetVolume - avg) < 0.01*targetVolume*targetVolume) {
 		  int totalFreq = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
@@ -388,12 +487,14 @@ void Simulation::tune(int tuneSteps) {
 		  printf("add: %f, del: %f\n", addRate, delRate);
 		  }*/
 
-		printf("step %d - epsilon: %f, k3: %f, avg: %d, sd: %d\n", k, epsilon, k3, (int) avg, (int) sd);
-		printf("fail: %d, add: %d, del: %d, flip: %d, shift: %d, ishift: %d\n", success[0], success[1], success[2], success[3], success[4], success[5]);
+/*		//printf("step %d - epsilon: %f, k3: %f, avg: %d, sd: %d\n", k, epsilon, k3, (int) avg, (int) sd);
+		//printf("fail: %d, add: %d, del: %d, flip: %d, shift: %d, ishift: %d\n", success[0], success[1], success[2], success[3], success[4], success[5]);
 
 		//Universe::check();
 
-		success = std::vector<int>(6,0);
-	}
+		//success = std::vector<int>(6,0);
+	//}//
+*/
+
 
 }

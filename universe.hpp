@@ -21,7 +21,7 @@ public:
 	static Bag<Vertex, Vertex::pool_size> verticesAll;  // All vertices. 
 	static Bag<Vertex, Vertex::pool_size> verticesSix;  // Vertices with six tetrahedra, suitable for (6,2)-move
 
-	static bool initialize();
+	static bool initialize(std::string InFIle);
 
 	static bool move26(Tetra::Label t);
 	static bool move62(Vertex::Label v);

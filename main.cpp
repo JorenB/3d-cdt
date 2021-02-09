@@ -28,14 +28,26 @@ int main(int argc, const char * argv[]) {
 	std::string fID = cfr.getString("fileID");
 	int measurements = cfr.getInt("measurements");
 
+	std::string InFile = cfr.getString("infile");
+
+	int thermal = cfr.getInt("thermal"); // Number of thermalization sweeps
+	int ksteps = cfr.getInt("ksteps");  // Number of thousand steps in a sweep
+	int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
+
+	double k3_s = cfr.getDouble("k3"); // Cosmological constant from input
+	
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
 
-	Universe::initialize();
-	printf("initialized\n");
+	Universe::initialize(InFile);
 
-	//VolumeProfile vp3(fID);
-	//Simulation::addObservable3d(vp3);
+	printf("\n\n#######################\n");
+	printf("* * * Initialized * * *\n");
+	printf("#######################\n\n");
+
+
+	VolumeProfile vp3(fID);
+	Simulation::addObservable3d(vp3);
 
 	//VolumeProfile vp(fID);
 	//Simulation::addObservable2d(vp);
@@ -43,13 +55,18 @@ int main(int argc, const char * argv[]) {
 	//Tau tau(fID);
 	//Simulation::addObservable3d(tau);
 
-	Hausdorff2d haus(fID);
-	Simulation::addObservable2d(haus);
+	//Hausdorff2d haus(fID);
+	//Simulation::addObservable2d(haus);
 
-	Hausdorff2dDual hausd(fID);
-	Simulation::addObservable2d(hausd);
+	//Hausdorff2dDual hausd(fID);
+	//Simulation::addObservable2d(hausd);
 	
-	Simulation::start(measurements, k0, targetVolume, target2Volume, seed);
+	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermal, ksteps, sweeps);
+	
+	printf("\n\n####################\n");
+	printf("* * * Finished * * *\n");
+	printf("####################\n\n");
+
 
 	printf("t31: %d\n", Universe::tetras31.size());
 		

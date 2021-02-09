@@ -24,6 +24,14 @@ public:
 		assert(dict.find("seed") != dict.end());
 		assert(dict.find("fileID") != dict.end());
 		assert(dict.find("measurements") != dict.end());
+//DN
+assert(dict.find("thermal") != dict.end());
+assert(dict.find("ksteps") != dict.end());
+assert(dict.find("infile") != dict.end());
+assert(dict.find("k3") != dict.end());
+//assert(dict.find("outfile") != dict.end());
+//ND
+
 	}
 
 	int getInt(std::string key) {

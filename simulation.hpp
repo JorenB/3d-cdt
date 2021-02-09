@@ -11,7 +11,7 @@ class Simulation {
 public:
 	static double lambda;
 
-	static void start(int measurements, double k0_, int targetVolume_, int target2Volume_, int seed);
+	static void start(int measurements, double k0_, double k3, int targetVolume_, int target2Volume_, int seed, int thermal, int ksteps, int sweeps);
 	static void addObservable3d(Observable& o) {
 		observables3d.push_back(&o);
 	}
@@ -25,6 +25,12 @@ public:
 
 	static int targetVolume;
 	static int target2Volume;
+
+	static int thermal;
+	static int ksteps;
+	static double k3_s;
+	
+
 private:
 	static std::default_random_engine rng;
 
@@ -48,8 +54,8 @@ private:
 	static bool moveShiftID();
 
 	static void prepare();
+	static void tune();
 
-	static void tune(int steps);
 	//static void grow();
 	//static void thermalize();
 };

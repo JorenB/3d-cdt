@@ -23,10 +23,10 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize() {
-	std::ifstream infile("geometries/sample-seed-geometry.dat");
-
-	assert(!infile.fail());
+bool Universe::initialize(std::string InFile) {
+//DN
+	std::ifstream infile(InFile.c_str());
+//ND
 
 	int n0;
 	infile >> n0;
