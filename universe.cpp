@@ -24,7 +24,9 @@ std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
 bool Universe::initialize() {
-	std::ifstream infile("in/initial.dat");
+	std::ifstream infile("geometries/sample-seed-geometry.dat");
+
+	assert(!infile.fail());
 
 	int n0;
 	infile >> n0;
