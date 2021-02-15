@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
 
 	std::string InFile = cfr.getString("infile");
 
-	int thermal = cfr.getInt("thermal"); // Number of thermalization sweeps
-	int ksteps = cfr.getInt("ksteps");  // Number of thousand steps in a sweep
+	int thermalSteps = cfr.getInt("thermalSteps"); // Number of thermalization sweeps
+	int kSteps = cfr.getInt("kSteps");  // Number of thousand steps in a sweep
 	int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
 
 	double k3_s = cfr.getDouble("k3"); // Cosmological constant from input
@@ -61,7 +61,7 @@ int main(int argc, const char * argv[]) {
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);
 	
-	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermal, ksteps, sweeps);
+	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermalSteps, kSteps, sweeps);
 	
 	printf("\n\n####################\n");
 	printf("* * * Finished * * *\n");

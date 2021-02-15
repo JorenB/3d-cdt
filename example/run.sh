@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MAIN=cdt2d.x
+MAIN=3dcdt.x
 
 rm -f ${MAIN} out/*.dat
 make --no-print-directory -C ..

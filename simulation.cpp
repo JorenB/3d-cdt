@@ -17,7 +17,7 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {4, 1, 1};
 
-void Simulation::start(int measurements, double k0_, double k3_s, int targetVolume_, int target2Volume_, int seed, int thermal, int ksteps, int sweeps) {
+void Simulation::start(int measurements, double k0_, double k3_, int targetVolume_, int target2Volume_, int seed, int thermalSteps, int kSteps, int sweeps) {
 	k0 = k0_;
 	targetVolume = targetVolume_;
 	target2Volume = target2Volume_;
@@ -31,15 +31,15 @@ void Simulation::start(int measurements, double k0_, double k3_s, int targetVolu
 
 	rng.seed(seed);
 	
-	k3 = k3_s;
+	k3 = k3_;
 
 	measuring = true;
 	
-bool not_from_thermal = true; // If the input is already thermalized, skip this part 
-int maN3 = 0;		      // Moving average of N3 just for checkup purposes.
+	bool fromThermal = false;  // If the input is already thermalized, skip this part 
+	int maN3 = 0;  // Moving average of N3 just for checkup purposes.
 
-	if(not_from_thermal == true) { //PUMP up volume to the target + some moves just for spice
-
+	if(fromThermal == false) {  
+		// Pump up volume to the target + some moves just for spice
 		printf(" * * move to target 3vol * * \n");
 		while (Tetra::size() < targetVolume) {
 			moveAdd();		
@@ -51,79 +51,63 @@ int maN3 = 0;		      // Moving average of N3 just for checkup purposes.
 		}  
 		printf(" * * done * * \n\n");
 
-		
-	}
+		for (int i = 0; i < thermalSteps; i++) {  // thermalization phase
+			printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
+			printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t ksteps: %d\n", k0, k3, epsilon, thermalSteps, kSteps);
 
-	for (int i = 0; i < thermal; i++) {  // Number of Thermal sweeps
-		 	
-
-		printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
-		printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t ksteps: %d \n", k0, k3, epsilon,thermal, ksteps,sweeps);
-
-		
-		for (int j = 0; j < ksteps*1000; j++) { // attempt ksteps * 1000 moves
-			attemptMove();
-		}
-
-		tune();  // tune k3
-
-
-		maN3 *= i; // multiply the average with the previous i		
-		maN3 += Tetra::size(); // add the current size to the sum
-		maN3 /= (i+1);         // calculate average
-
-
-		if (target2Volume > 0) {
-			bool hit = false;
-			//hit = true;
-			//printf("move to target 2vol...\n");
-			do {
+			for (int j = 0; j < kSteps * 1000; j++) {
 				attemptMove();
-				for (auto s : Universe::sliceSizes) {
-					if (s == target2Volume) {
-						hit = true;
-						break;
+			}
+
+			tune();  // tune k3 one step
+
+			maN3 *= i;  // multiply the average with the previous i		
+			maN3 += Tetra::size();  // add the current size to the sum
+			maN3 /= (i + 1);  // calculate average
+
+			if (target2Volume > 0) {
+				bool hit = false;
+				//printf("move to target 2vol...\n");
+				do {
+					attemptMove();
+					for (auto s : Universe::sliceSizes) {
+						if (s == target2Volume) {
+							hit = true;
+							break;
+						}
 					}
+				} while (!hit);
+				//printf("done\n");
+
+				prepare();
+				for (auto o : observables2d) {
+					//printf("m2d\n");
+					o->measure();
 				}
-			} while (!hit);
-			//printf("done\n");
-
-			prepare();
-			for (auto o : observables2d) {
-				//printf("m2d\n");
-				o->measure();
+			}  // it should be possible to have both two-dimensional and three-dimensional measurements in principle, I think
+			else {
+				prepare();
+				for (auto o : observables3d) {
+					printf("m\n");
+					o->measure();
+				}
 			}
 		}
-		else {
-			prepare();
-			for (auto o : observables3d) {
-				printf("m\n");
-				o->measure();
-			}
+	}  // end thermalization
 
-			
-		}
-	
+	maN3 = 0; // reset moving average to 0
 
-	}
-
-
-		maN3 = 0; //re 0 moving average
-
-	for (int i = 0; i < sweeps; i++) {  // didn't change it yet
-		
-		maN3 *= i; // multiply the average with the previous i		
-		maN3 += Tetra::size(); // add the current size to the sum
-		maN3 /= (i+1);         // calculate average
+	for (int i = 0; i < sweeps; i++) {  // measurement phase
+		maN3 *= i;
+		maN3 += Tetra::size();
+		maN3 /= (i+1);
 
 		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
 
 
-		for (int j = 0; j < ksteps; j++) 
-			attemptMove();
+		sweep(targetVolume * 1000);
 
 		if (observables3d.size() > 0) {
-
 			prepare();
 			for (auto o : observables3d) {
 				o->measure();
@@ -132,7 +116,6 @@ int maN3 = 0;		      // Moving average of N3 just for checkup purposes.
 
 		if (target2Volume > 0) { 
 			bool hit = false;
-			//hit = true;
 			do {
 				attemptMove();
 				for (auto s : Universe::sliceSizes) {
@@ -149,10 +132,7 @@ int maN3 = 0;		      // Moving average of N3 just for checkup purposes.
 			}
 		}
 	}
-
-
 }
-
 
 int Simulation::attemptMove() {
 	std::array<int, 3> cumFreqs = {0, 0, 0};
@@ -434,12 +414,7 @@ void Simulation::tune() {
 			k3 += loc_epsilon*10;
 		}
 
-	
-	
-	
-
 /*
-
 	bool done = false;
 
 	for (int k = 0; k < 1 && !done; k++) {
@@ -473,21 +448,21 @@ void Simulation::tune() {
 
 		//if (k >= tuneSteps && abs(avg-targetVolume) < 0.1*targetVolume && epsilon < 0.021) done = true;
 
-		/*if ((targetVolume - avg)*(targetVolume - avg) < 0.01*targetVolume*targetVolume) {
-		  int totalFreq = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
-		  double rate[3];
-		  rate[0] = totalFreq/(double) moveFreqs[0] * (success[1] + success[2])/1000000;
-		  rate[1] = totalFreq/(double) moveFreqs[0] * (success[3])/1000000;
-		  rate[2] = totalFreq/(double) moveFreqs[0] * (success[4] + success[5])/1000000;
+		//if ((targetVolume - avg)*(targetVolume - avg) < 0.01*targetVolume*targetVolume) {
+		//  int totalFreq = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
+		//  double rate[3];
+		//  rate[0] = totalFreq/(double) moveFreqs[0] * (success[1] + success[2])/1000000;
+		//  rate[1] = totalFreq/(double) moveFreqs[0] * (success[3])/1000000;
+		//  rate[2] = totalFreq/(double) moveFreqs[0] * (success[4] + success[5])/1000000;
 
-		  double addRate = totalFreq/(double) moveFreqs[0] * (success[1])/1000000;
-		  double delRate = totalFreq/(double) moveFreqs[0] * (success[2])/1000000;
+		//  double addRate = totalFreq/(double) moveFreqs[0] * (success[1])/1000000;
+		//  double delRate = totalFreq/(double) moveFreqs[0] * (success[2])/1000000;
 
-		  printf("rates: %f - %f - %f\n", rate[0], rate[1], rate[2]);
-		  printf("add: %f, del: %f\n", addRate, delRate);
-		  }*/
+		//  printf("rates: %f - %f - %f\n", rate[0], rate[1], rate[2]);
+		//  printf("add: %f, del: %f\n", addRate, delRate);
+		//  }
 
-/*		//printf("step %d - epsilon: %f, k3: %f, avg: %d, sd: %d\n", k, epsilon, k3, (int) avg, (int) sd);
+		//printf("step %d - epsilon: %f, k3: %f, avg: %d, sd: %d\n", k, epsilon, k3, (int) avg, (int) sd);
 		//printf("fail: %d, add: %d, del: %d, flip: %d, shift: %d, ishift: %d\n", success[0], success[1], success[2], success[3], success[4], success[5]);
 
 		//Universe::check();

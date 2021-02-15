@@ -23,10 +23,10 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize(std::string InFile) {
-//DN
-	std::ifstream infile(InFile.c_str());
-//ND
+bool Universe::initialize(std::string geometryFilename) {
+	std::ifstream infile(geometryFilename.c_str());
+
+	assert(!infile.fail());
 
 	int n0;
 	infile >> n0;
@@ -881,7 +881,6 @@ void Universe::updateHalfEdgeData() {
 	halfEdges.clear();
 
 	for (auto t : tetras31) {
-		if (t->vs[0]->time != 1) continue;
 		//t->log();
 		std::array<HalfEdge::Label, 3> these;
 		for (int i = 0; i < 3; i++) {
@@ -902,7 +901,6 @@ void Universe::updateHalfEdgeData() {
 	}
 
 	for (auto t : tetras31) {
-		if (t->vs[0]->time != 1) continue;
 		for (int i = 0; i < 3; i++) {
 			auto v = t->vs[i];
 			auto vt = t->vs[3];
