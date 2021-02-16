@@ -23,6 +23,8 @@ public:
 
 	static bool initialize(std::string geometryFilename);
 
+	static bool exportGeometry(std::string geometryFilename);
+
 	static bool move26(Tetra::Label t);
 	static bool move62(Vertex::Label v);
 

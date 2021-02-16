@@ -28,6 +28,9 @@ bool Universe::initialize(std::string geometryFilename) {
 
 	assert(!infile.fail());
 
+	bool ordered;  // first line is a switch indicating whether tetrahedron data is ordered by convention
+	infile >> ordered;
+
 	int n0;
 	infile >> n0;
 	printf("n0: %d\n", n0);
@@ -71,21 +74,11 @@ bool Universe::initialize(std::string geometryFilename) {
 
 		t->setVertices(tvs[0], tvs[1], tvs[2], tvs[3]);
 		if (t->is31()) {
-			//std::array<HalfEdge::Label, 3> tHalfEdges;
 
 			for (int j = 0; j < 3; j++) {
 				Pool<Vertex>::Label v = tvs[j];
 				v->tetra = t;
 			}
-			
-			//for (int j = 0; j < 3; j++) {
-			//	auto he = HalfEdge::create();
-			//	he->setVertices(tvs[j], tvs[(j + 1) % 3]);
-			//	assert(t < n3);
-			//	tHalfEdges[j] = he;
-			//	hes.push_back(he);
-			//}
-			//t->setHalfEdges(tHalfEdges[0], tHalfEdges[1], tHalfEdges[2]);
 		}
 		t->setTetras(tts[0], tts[1], tts[2], tts[3]);
 		
@@ -97,56 +90,29 @@ bool Universe::initialize(std::string geometryFilename) {
 	}
 	infile >> line;
 	if (line != n3) return false;
-	printf("read\n");
+	printf("read %s\n", geometryFilename.c_str());
 
-	for (auto t : tetrasAll) {
-		auto tnbr = t->tnbr;
-		Tetra::Label t012 = -1, t013 = -1, t023 = -1, t123 = -1;
-		for (auto tn : tnbr) {
-			if (!tn->hasVertex(t->vs[3])) { t012 = tn; continue; }
-			if (!tn->hasVertex(t->vs[2])) { t013 = tn; continue; }
-			if (!tn->hasVertex(t->vs[1])) { t023 = tn; continue; }
-			if (!tn->hasVertex(t->vs[0])) { t123 = tn; continue; }
-		}
-
-		assert(t012 >= 0);
-		assert(t013 >= 0);
-		assert(t023 >= 0);
-		assert(t123 >= 0);
-
-		t->setTetras(t123, t023, t013, t012);
-	}
-
-	/*for (auto t : tetras31) {
-		for (int i = 0; i < 3; i++) {
-			auto he = t->halfEdges[i];
-			if (he->getAdjacent() < 0) {
-				bool found = false;
-				for (auto ta : tetras31) {
-					for (auto ahe : ta->halfEdges) {
-						if ((he->vs[0] == ahe->vs[1]) && (he->vs[1] == ahe->vs[0])) {
-							he->setAdjacent(ahe);
-							found = true;
-
-							break;
-						}
-					}
-
-					if (found) break;
-				}
+	if (!ordered) {
+		for (auto t : tetrasAll) {  // reorder to convention
+			printf("t: %d\n", t);
+			auto tnbr = t->tnbr;
+			printf("\t%d %d %d %d\n", tnbr[0], tnbr[1], tnbr[2], tnbr[3]);
+			Tetra::Label t012 = -1, t013 = -1, t023 = -1, t123 = -1;
+			for (auto tn : tnbr) {
+				if (!tn->hasVertex(t->vs[3])) { t012 = tn; continue; }
+				if (!tn->hasVertex(t->vs[2])) { t013 = tn; continue; }
+				if (!tn->hasVertex(t->vs[1])) { t023 = tn; continue; }
+				if (!tn->hasVertex(t->vs[0])) { t123 = tn; continue; }
 			}
-		}
-	}*/
-	
-	/*for (auto he : hes) {
-		printf("he: %d, adj: %d, v: %d - %d\n", he, he->getAdjacent(), he->vs[0], he->vs[1]);
-	}*/
 
-	//for (auto t : tetras31) {
-	//	for (auto i = 0; i < 3; i++) {
-	//		if (t->vs[i]->cnum == 6 && !verticesSix.contains(t->vs[i])) verticesSix.add(t->vs[i]);
-	//	}
-	//}
+			assert(t012 >= 0);
+			assert(t013 >= 0);
+			assert(t023 >= 0);
+			assert(t123 >= 0);
+
+			t->setTetras(t123, t023, t013, t012);
+		}
+	}
 
 	for (auto v : vs) {
 		int cnum = 0, scnum = 0;
@@ -158,6 +124,75 @@ bool Universe::initialize(std::string geometryFilename) {
 		v->scnum = scnum;
 		v->cnum = cnum;
 	}
+
+	return true;
+}
+
+bool Universe::exportGeometry(std::string geometryFilename) {
+	updateVertexData();
+	updateHalfEdgeData();
+	updateTriangleData();
+
+	std::unordered_map<int, int> vertexMap;
+	std::vector<Vertex::Label> intVMap;
+	intVMap.resize(vertices.size());
+
+	int i = 0;
+	for (auto v : vertices) {
+		vertexMap.insert({v, i});
+		intVMap.at(i) = v;
+		i++;
+	}
+
+	// TODO: rewrite to incorporate 'tetras' and add 'updateTetraData()'
+	std::unordered_map<int, int> tetraMap;
+	std::vector<Tetra::Label> intTMap;
+	intTMap.resize(tetrasAll.size());
+
+	i = 0;
+	for (auto t : tetrasAll) {
+		tetraMap.insert({t, i});
+		intTMap.at(i) = t;
+		i++;
+	}
+
+	std::string out = "";
+
+	out += std::to_string(vertices.size());
+	out += "\n";
+
+	for (int j = 0; j < intVMap.size(); j++) {
+		out += std::to_string(intVMap.at(j)->time);
+		out += "\n";
+	}
+
+	out += std::to_string(vertices.size());
+	out += "\n";
+
+	out += std::to_string(tetrasAll.size());
+	out += "\n";
+
+	for (int j = 0; j < intTMap.size(); j++) {
+		for (auto v : intTMap.at(j)->vs) {
+			out += std::to_string(vertexMap.at(v));
+			out += "\n";
+		}
+		for (auto t : intTMap.at(j)->tnbr) {
+			out += std::to_string(tetraMap.at(t));
+			out += "\n";
+		}
+	}
+	
+	out += std::to_string(tetrasAll.size());
+
+    std::ofstream file;
+    file.open(geometryFilename, std::ios::out | std::ios::trunc);
+	assert(file.is_open());
+
+	file << out << "\n";
+	file.close();
+
+    std::cout << geometryFilename << "\n";
 
 	return true;
 }
@@ -536,10 +571,6 @@ bool Universe::move23u(Tetra::Label t31, Tetra::Label t22) {
 	if (ta134->hasVertex(v0)) return false;
 
 	if (v0->neighborsVertex(v1)) return false;
-	//for (auto tt : tetrasAll) {  // CHANGE! INEFFICIENT TMP SOLUTION
-	//	if (tt->hasVertex(v0) && tt->hasVertex(v1)) return false;
-	//}
-
 
 	auto tn31 = Tetra::create();
 	auto tn22l = Tetra::create();

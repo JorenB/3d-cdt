@@ -97,7 +97,7 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 
 	maN3 = 0; // reset moving average to 0
 
-	for (int i = 0; i < sweeps; i++) {  // measurement phase
+	for (int i = 0; i < measurements; i++) {  // measurement phase
 		maN3 *= i;
 		maN3 += Tetra::size();
 		maN3 /= (i+1);

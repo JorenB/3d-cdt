@@ -885,6 +885,7 @@ outfile = sys.argv[3]
 
 
 with open(outfile, 'w') as file_handler:
+    file_handler.write("0\n")
     for item in dat:
         file_handler.write("{}\n".format(int(item)))
 
