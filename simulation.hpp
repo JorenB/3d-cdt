@@ -11,7 +11,7 @@ class Simulation {
 public:
 	static double lambda;
 
-	static void start(int measurements, double k0_, double k3, int targetVolume_, int target2Volume_, int seed, int thermal, int ksteps, int sweeps);
+	static void start(int measurements, double k0_, double k3, int targetVolume_, int target2Volume_, int seed, int thermal, int ksteps);
 	static void addObservable3d(Observable& o) {
 		observables3d.push_back(&o);
 	}

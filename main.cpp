@@ -39,15 +39,15 @@ int main(int argc, const char * argv[]) {
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
 
-	Universe::initialize(InFile);
+	Universe::initialize(InFile, fID);
 
 	printf("\n\n#######################\n");
 	printf("* * * Initialized * * *\n");
 	printf("#######################\n\n");
 
 
-	VolumeProfile vp3(fID);
-	Simulation::addObservable3d(vp3);
+	//VolumeProfile vp3(fID);
+	//Simulation::addObservable3d(vp3);
 
 	//VolumeProfile vp(fID);
 	//Simulation::addObservable2d(vp);
@@ -61,12 +61,11 @@ int main(int argc, const char * argv[]) {
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);
 	
-	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermalSteps, kSteps, sweeps);
+	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermalSteps, kSteps);
 	
 	printf("\n\n####################\n");
 	printf("* * * Finished * * *\n");
 	printf("####################\n\n");
-
 
 	printf("t31: %d\n", Universe::tetras31.size());
 		

@@ -7,6 +7,7 @@
 int Universe::nSlices = 0;
 std::vector<int> Universe::slabSizes;
 std::vector<int> Universe::sliceSizes;
+std::string Universe::fID;
 std::default_random_engine Universe::rng(0);
 Bag<Tetra, Tetra::pool_size> Universe::tetrasAll(rng);
 Bag<Tetra, Tetra::pool_size> Universe::tetras31(rng);
@@ -23,7 +24,8 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize(std::string geometryFilename) {
+bool Universe::initialize(std::string geometryFilename, std::string fID_) {
+	fID = fID_;
 	std::ifstream infile(geometryFilename.c_str());
 
 	assert(!infile.fail());
@@ -94,9 +96,7 @@ bool Universe::initialize(std::string geometryFilename) {
 
 	if (!ordered) {
 		for (auto t : tetrasAll) {  // reorder to convention
-			printf("t: %d\n", t);
 			auto tnbr = t->tnbr;
-			printf("\t%d %d %d %d\n", tnbr[0], tnbr[1], tnbr[2], tnbr[3]);
 			Tetra::Label t012 = -1, t013 = -1, t023 = -1, t123 = -1;
 			for (auto tn : tnbr) {
 				if (!tn->hasVertex(t->vs[3])) { t012 = tn; continue; }
@@ -128,10 +128,12 @@ bool Universe::initialize(std::string geometryFilename) {
 	return true;
 }
 
+bool Universe::exportGeometry() {
+	return exportGeometry("thermalized/conf-" + fID + ".dat");
+}
+
 bool Universe::exportGeometry(std::string geometryFilename) {
-	updateVertexData();
-	updateHalfEdgeData();
-	updateTriangleData();
+	updateGeometry();
 
 	std::unordered_map<int, int> vertexMap;
 	std::vector<Vertex::Label> intVMap;
@@ -156,7 +158,7 @@ bool Universe::exportGeometry(std::string geometryFilename) {
 		i++;
 	}
 
-	std::string out = "";
+	std::string out = "1\n";  // indicating well-orderedness
 
 	out += std::to_string(vertices.size());
 	out += "\n";
@@ -1008,7 +1010,11 @@ void Universe::updateTriangleData() {
 	}
 }
 
-
+void Universe::updateGeometry() {
+	updateVertexData();
+	updateHalfEdgeData();
+	updateTriangleData();
+}
 
 void Universe::check() {
 	printf("====================================================\n");

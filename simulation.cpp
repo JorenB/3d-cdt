@@ -17,7 +17,7 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {4, 1, 1};
 
-void Simulation::start(int measurements, double k0_, double k3_, int targetVolume_, int target2Volume_, int seed, int thermalSteps, int kSteps, int sweeps) {
+void Simulation::start(int measurements, double k0_, double k3_, int targetVolume_, int target2Volume_, int seed, int thermalSteps, int kSteps) {
 	k0 = k0_;
 	targetVolume = targetVolume_;
 	target2Volume = target2Volume_;
@@ -105,10 +105,14 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
 
 
+		tune();
+		printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon, thermalSteps, kSteps);
+
 		sweep(targetVolume * 1000);
 
+		Universe::exportGeometry();
+
 		if (observables3d.size() > 0) {
-			prepare();
 			for (auto o : observables3d) {
 				o->measure();
 			}
@@ -383,10 +387,8 @@ bool Simulation::moveShiftID() {
 
 
 void Simulation::prepare() {
-	Universe::updateVertexData();
-	Universe::updateHalfEdgeData();
-	Universe::updateTriangleData();
-	//Universe::check();
+	Universe::updateGeometry();
+		//Universe::check();
 }
 
 void Simulation::tune() { 
