@@ -1,4 +1,4 @@
-// Copyright 2018 Joren Brunekreef and Andrzej Görlich
+// Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 /****
  *
  * Bag is an implementation of a set-like data structure.
@@ -6,8 +6,7 @@
  * It stores integer values less than N.
  *
  ****/
-#ifndef BAG_HPP_
-#define BAG_HPP_
+#pragma once
 
 #include <cassert>
 #include <random>
@@ -84,4 +83,3 @@ public:
 	   auto begin()	{ return &elements[0]; }
 	   auto end()		{ return &elements[size_]; }
 };
-#endif  // BAG_HPP_

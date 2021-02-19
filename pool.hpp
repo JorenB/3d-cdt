@@ -1,5 +1,5 @@
-#ifndef POOL_HPP_
-#define POOL_HPP_
+// Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
+#pragma once
 /****
 
 A Simplex<T> contains a single pool of objects of type ....
@@ -156,4 +156,3 @@ template<class T> T* Pool<T>::elements	= Pool<T>::create_pool();
 template<class T> int Pool<T>::first{0};
 template<class T> int Pool<T>::total{0};
 template<class T> int Pool<T>::capacity;
-#endif

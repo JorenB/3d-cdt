@@ -1,4 +1,4 @@
-// Copyright 2018 Joren Brunekreef and Andrzej Görlich
+// Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #include "volume_profile.hpp"
 
 void VolumeProfile::process() {

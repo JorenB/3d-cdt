@@ -1,3 +1,4 @@
+// Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #include <iostream>
 #include <fstream>
 #include "observable.hpp"

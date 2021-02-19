@@ -1,4 +1,4 @@
-// Copyright 2020 Joren Brunekreef and Andrzej Görlich
+// Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
