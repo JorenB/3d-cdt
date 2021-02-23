@@ -129,7 +129,7 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_) {
 }
 
 bool Universe::exportGeometry() {
-	return exportGeometry("thermalized/conf-" + fID + ".dat");
+	return exportGeometry("geometries/conf-" + fID + ".dat");
 }
 
 bool Universe::exportGeometry(std::string geometryFilename) {

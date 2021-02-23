@@ -55,8 +55,9 @@ int main(int argc, const char * argv[]) {
 	//Tau tau(fID);
 	//Simulation::addObservable3d(tau);
 
-	//Hausdorff2d haus(fID);
-	//Simulation::addObservable2d(haus);
+	Hausdorff2d haus(fID, true);
+	//Hausdorff2d haus(fID, false);
+	Simulation::addObservable2d(haus);
 
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);

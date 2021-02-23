@@ -1,9 +1,9 @@
 targetVolume	10000 
-target2Volume	0
+target2Volume	1100
 k0				5.0
 k3				1.712
 kSteps			1000
-thermalSteps	500
+thermalSteps	10
 sweeps			30
 genus			0
 seed			1

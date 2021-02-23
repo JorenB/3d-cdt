@@ -3,14 +3,46 @@
 
 void Hausdorff2d::process() {
     std::string tmp = "";
-	Vertex::Label v;
-	do {
-		v = Universe::verticesAll.pick();
-	} while (Universe::sliceSizes[v->time] != Simulation::target2Volume);
+	std::vector<int> profile = {};
 
-	auto dsts = distanceList2d(v);
 
-	for (auto d : dsts) {
+	if (!average) {
+		printf("single\n");
+		Vertex::Label v;
+		do {
+			v = Universe::verticesAll.pick();
+		} while (Universe::sliceSizes[v->time] != Simulation::target2Volume);
+
+		profile = distanceList2d(v);
+	} else if (average) {
+		printf("avg\n");
+		
+		int counter = 0;
+		for (auto v : Universe::verticesAll) {
+			if (Universe::sliceSizes[v->time] != Simulation::target2Volume) continue;
+			counter++;
+			//printf("c: %d\n", counter);
+
+			auto singleProfile = distanceList2d(v);
+			if (singleProfile.size() > profile.size()) profile.resize(singleProfile.size(), 0);
+			
+			std::string tmp = "";
+			for (int i = 0; i < singleProfile.size(); i++) {
+				//printf("%d ", singleProfile.at(i));
+				profile.at(i) += singleProfile.at(i);
+				tmp += std::to_string(profile.at(i) / counter);
+				tmp += " ";
+			}
+
+			//printf("\n%s\n", tmp.c_str());
+		}
+
+		for (int i = 0; i < profile.size(); i++) {
+			profile.at(i) /= counter;
+		}
+	}
+
+	for (auto d : profile) {
 		tmp += std::to_string(d);
 		tmp += " ";
 	}
