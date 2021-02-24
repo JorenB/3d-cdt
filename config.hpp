@@ -26,6 +26,7 @@ public:
 		assert(dict.find("measurements") != dict.end());
 		assert(dict.find("thermalSteps") != dict.end());
 		assert(dict.find("kSteps") != dict.end());
+		assert(dict.find("strictness") != dict.end());
 		assert(dict.find("infile") != dict.end());
 		assert(dict.find("k3") != dict.end());
 	}

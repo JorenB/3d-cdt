@@ -4,6 +4,7 @@
 #include "simulation.hpp"
 
 #include "observables/volume_profile.hpp"
+//#include "observables/cnum.hpp"
 #include "observables/tau.hpp"
 #include "observables/hausdorff2d.hpp"
 #include "observables/hausdorff2d_dual.hpp"
@@ -30,6 +31,8 @@ int main(int argc, const char * argv[]) {
 
 	std::string InFile = cfr.getString("infile");
 
+	int strictness = cfr.getInt("strictness");
+
 	int thermalSteps = cfr.getInt("thermalSteps"); // Number of thermalization sweeps
 	int kSteps = cfr.getInt("kSteps");  // Number of thousand steps in a sweep
 	int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
@@ -38,13 +41,16 @@ int main(int argc, const char * argv[]) {
 	
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
+	printf("strictness: %d\n", seed);
 
-	Universe::initialize(InFile, fID);
+	Universe::initialize(InFile, fID, strictness);
 
 	printf("\n\n#######################\n");
 	printf("* * * Initialized * * *\n");
 	printf("#######################\n\n");
 
+	//CNum cnum(fID);
+	//Simulation::addObservable2d(cnum);
 
 	//VolumeProfile vp3(fID);
 	//Simulation::addObservable3d(vp3);
@@ -52,12 +58,12 @@ int main(int argc, const char * argv[]) {
 	//VolumeProfile vp(fID);
 	//Simulation::addObservable2d(vp);
 	
-	//Tau tau(fID);
-	//Simulation::addObservable3d(tau);
+	Tau tau(fID);
+	Simulation::addObservable3d(tau);
 
-	Hausdorff2d haus(fID, true);
+	//Hausdorff2d haus(fID, true);
 	//Hausdorff2d haus(fID, false);
-	Simulation::addObservable2d(haus);
+	//Simulation::addObservable2d(haus);
 
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);

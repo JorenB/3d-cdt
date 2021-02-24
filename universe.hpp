@@ -17,12 +17,14 @@ public:
 	static std::vector<int> sliceSizes;
 	static std::string fID;
 
+	static int strictness;
+
 	static Bag<Tetra, Tetra::pool_size> tetrasAll;  // All tetrahedra. 
 	static Bag<Tetra, Tetra::pool_size> tetras31;  // All (3,1) tetrahedra. 
 	static Bag<Vertex, Vertex::pool_size> verticesAll;  // All vertices. 
 	static Bag<Vertex, Vertex::pool_size> verticesSix;  // Vertices with six tetrahedra, suitable for (6,2)-move
 
-	static bool initialize(std::string geometryFilename, std::string fID);
+	static bool initialize(std::string geometryFilename, std::string fID, int strictness);
 
 	static bool exportGeometry();
 	static bool exportGeometry(std::string geometryFilename);

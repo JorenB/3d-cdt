@@ -8,6 +8,7 @@ int Universe::nSlices = 0;
 std::vector<int> Universe::slabSizes;
 std::vector<int> Universe::sliceSizes;
 std::string Universe::fID;
+int Universe::strictness;
 std::default_random_engine Universe::rng(0);
 Bag<Tetra, Tetra::pool_size> Universe::tetrasAll(rng);
 Bag<Tetra, Tetra::pool_size> Universe::tetras31(rng);
@@ -24,11 +25,13 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize(std::string geometryFilename, std::string fID_) {
+bool Universe::initialize(std::string geometryFilename, std::string fID_, int strictness_) {
 	fID = fID_;
 	std::ifstream infile(geometryFilename.c_str());
 
 	assert(!infile.fail());
+
+	strictness = strictness_;
 
 	bool ordered;  // first line is a switch indicating whether tetrahedron data is ordered by convention
 	infile >> ordered;
@@ -346,6 +349,8 @@ bool Universe::move62(Vertex::Label v) {
 	auto tvo12 = tv12->getTetraOpposite(v);
 	auto tvo20 = tv20->getTetraOpposite(v);
 
+	/*
+	// disallow tetrahedra to become their own neighbor (tadpoles in dual graph)
 	if ((to01 == t12) || (to01 == t20)) return false;
 	if ((to12 == t20) || (to12 == t01)) return false;
 	if ((to20 == t01) || (to20 == t12)) return false;
@@ -353,6 +358,26 @@ bool Universe::move62(Vertex::Label v) {
 	if ((tvo01 == tv12) || (tvo01 == tv20)) return false;
 	if ((tvo12 == tv20) || (tvo12 == tv01)) return false;
 	if ((tvo20 == tv01) || (tvo20 == tv12)) return false;
+	// end tadpole
+
+	// disallow one tetrahedron to act as two neighbors (self-energy in dual graph)
+	if ((to01 == to12) || (to01 == to20) || (to12 == to20)) return false;
+	if ((tvo01 == tvo12) || (tvo01 == tvo20) || (tvo12 == tvo20)) return false;
+	*/
+	
+	if (strictness == 0) {
+	} else if (strictness == 1) {
+		// disallow tadpole insertions
+		if (v0->scnum < 3) return false;
+		if (v1->scnum < 3) return false;
+		if (v2->scnum < 3) return false;
+	} else if (strictness == 2) {
+		// disallow self-energy insertions
+		if (v0->scnum < 4) return false;
+		if (v1->scnum < 4) return false;
+		if (v2->scnum < 4) return false;
+	}
+	
 
 	auto tn = Tetra::create();
 	auto tvn = Tetra::create();
@@ -412,12 +437,6 @@ bool Universe::move62(Vertex::Label v) {
 	Tetra::destroy(tv12);
 	Tetra::destroy(tv20);
 	
-	if (v == 234) {
-		
-		assert(verticesAll.contains(v));
-		//assert(verticesSix.contains(v));
-	}
-
 
 	verticesAll.remove(v);
 	//verticesSix.remove(v);
@@ -451,10 +470,15 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	auto tv012 = t012->tnbr[3];
 	auto tv230 = t230->tnbr[3];
 
-	if (v0->scnum == 3) { return false; }
-	if (v2->scnum == 3) { return false; }
+	if (strictness >= 1) {
+		if (v1 == v3) return false;
+	}
+	if (strictness == 2) {
+		// disallow self-energy insertions in dual graph
+		if (v0->scnum == 3) { return false; }
+		if (v2->scnum == 3) { return false; }
+	}
 
-	if (v1 == v3) return false;
 
 	auto vt = t012->vs[3];
 	auto vb = tv012->vs[0];
@@ -510,6 +534,11 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	v1->scnum++;
 	v2->scnum--;
 	v3->scnum++;
+
+	if (strictness == 2) {
+		assert(v0->scnum >= 3);
+		assert(v2->scnum >= 3);
+	}
 
 	v0->cnum -= 2;
 	v1->cnum += 2;
@@ -1055,10 +1084,22 @@ void Universe::check() {
 			if (t->is31()) {
 				if (i < 3) assert(t->tnbr[i]->is31() || t->tnbr[i]->is22());
 				else assert(t->tnbr[i]->is13());
+
 			} else if (t->is13()) {
 				if (i == 0) assert(t->tnbr[i]->is31());
 				else assert(t->tnbr[i]->is13() || t->tnbr[i]->is22());
 			}
+
+			// tadpole/self-energy in 2d dual graph
+			/*if (t->is31() || t->is13()) {
+				for (int i = 0; i < 3; i++) {
+					for (int j = 1; j < 4; j++) {
+						if (t->tnbr[i] == t->tnbr[(i + j) % 4]) t->log();
+						assert(t->tnbr[i] != t->tnbr[(i + j) % 4]);
+					}
+				}
+			}*/
+
 		}
 
 		for (int i = 0; i < 4; i++) {
@@ -1072,7 +1113,7 @@ void Universe::check() {
 		int cnum = 0;
 		assert(Universe::tetrasAll.contains(v->tetra));
 		
-		for (auto tt : Universe::tetrasAll) {
+		/*for (auto tt : Universe::tetrasAll) {
 			if (tt->hasVertex(v)) cnum++;
 
 			if (tt->hasVertex(v)) {
@@ -1084,7 +1125,17 @@ void Universe::check() {
 				}
 			}
 		}
-		assert(cnum == v->cnum);
+		assert(cnum == v->cnum);*/
+
+		// tadpole restriction
+		if (strictness == 1) {
+			assert(v->scnum >= 2);
+		}
+		
+		if (strictness == 2) {
+			// self-energy restriction
+			assert(v->scnum >= 3);
+		}
 
 	}
 

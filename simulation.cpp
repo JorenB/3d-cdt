@@ -52,7 +52,11 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 		printf(" * * done * * \n\n");
 
 		for (int i = 0; i < thermalSteps; i++) {  // thermalization phase
-			printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
+			int total2v = 0;
+			for (auto ss : Universe::sliceSizes) total2v += ss;
+			int avg2v = total2v / Universe::nSlices;
+
+			printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d  avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), maN3, avg2v);
 			printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t ksteps: %d\n", k0, k3, epsilon, thermalSteps, kSteps);
 
 			for (int j = 0; j < kSteps * 1000; j++) {
@@ -60,12 +64,14 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 			}
 
 			tune();  // tune k3 one step
+			//Universe::check();
 
 			maN3 *= i;  // multiply the average with the previous i		
 			maN3 += Tetra::size();  // add the current size to the sum
 			maN3 /= (i + 1);  // calculate average
 
-			if (target2Volume > 0) {
+			if (false) {
+			//if (target2Volume > 0) {
 				bool hit = false;
 				//printf("move to target 2vol...\n");
 				do {
@@ -102,10 +108,14 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 		maN3 += Tetra::size();
 		maN3 /= (i+1);
 
-		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d \n",i, targetVolume, target2Volume, Tetra::size(), maN3);
+		int total2v = 0;
+		for (auto ss : Universe::sliceSizes) total2v += ss;
+		int avg2v = total2v / Universe::nSlices;
+		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), maN3, avg2v);
 
 
 		tune();
+		//Universe::check();
 		printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon, thermalSteps, kSteps);
 
 		sweep(targetVolume * 1000);
