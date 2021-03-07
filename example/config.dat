@@ -9,7 +9,5 @@ genus			0
 seed			1
 fileID			5.0-1.712-0-3-10000-1
 strictness		1
-infile			thermalized/sample-1.dat
-infile			geometries/sample-seed-geometry.dat
 infile			geometries/g-0-3.dat
 measurements	1000

@@ -939,6 +939,7 @@ void Universe::updateHalfEdgeData() {
 	for (int i = halfEdges.size() - 1; i >= 0; i--) {
 		HalfEdge::destroy(halfEdges[i]);
 	}
+	assert(HalfEdge::size() == 0);
 
 	halfEdges.clear();
 

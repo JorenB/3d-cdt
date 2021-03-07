@@ -6,7 +6,7 @@
 class Tetra;
 class Vertex : public Pool<Vertex> {
 public:
-	static const unsigned pool_size = 1000000;
+	static const unsigned pool_size = 3000000;
 	int time;  // Slice number
 
 	int scnum;  // Spatial coordination number

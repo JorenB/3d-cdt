@@ -7,7 +7,7 @@ class Triangle;
 class Tetra;
 class HalfEdge : public Pool<HalfEdge> {
 public:
-	static const unsigned pool_size = 1000000;
+	static const unsigned pool_size = 5000000;
 
 	std::array<Pool<Vertex>::Label, 2> vs = {-1, -1};
 

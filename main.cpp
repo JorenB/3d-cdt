@@ -4,7 +4,8 @@
 #include "simulation.hpp"
 
 #include "observables/volume_profile.hpp"
-//#include "observables/cnum.hpp"
+#include "observables/cnum.hpp"
+#include "observables/maxcnum.hpp"
 #include "observables/tau.hpp"
 #include "observables/hausdorff2d.hpp"
 #include "observables/hausdorff2d_dual.hpp"
@@ -41,7 +42,7 @@ int main(int argc, const char * argv[]) {
 	
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
-	printf("strictness: %d\n", seed);
+	printf("strictness: %d\n", strictness);
 
 	Universe::initialize(InFile, fID, strictness);
 
@@ -49,11 +50,14 @@ int main(int argc, const char * argv[]) {
 	printf("* * * Initialized * * *\n");
 	printf("#######################\n\n");
 
-	//CNum cnum(fID);
-	//Simulation::addObservable2d(cnum);
+	CNum cnum(fID);
+	Simulation::addObservable2d(cnum);
+	
+	MaxCNum maxcnum(fID);
+	Simulation::addObservable3d(maxcnum);
 
-	//VolumeProfile vp3(fID);
-	//Simulation::addObservable3d(vp3);
+	VolumeProfile vp3(fID);
+	Simulation::addObservable3d(vp3);
 
 	//VolumeProfile vp(fID);
 	//Simulation::addObservable2d(vp);

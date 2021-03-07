@@ -15,7 +15,7 @@ bool Simulation::measuring = false;
 std::vector<Observable*> Simulation::observables3d;
 std::vector<Observable*> Simulation::observables2d;
 
-std::array<int, 3> Simulation::moveFreqs = {4, 1, 1};
+std::array<int, 3> Simulation::moveFreqs = {4, 1, 10};
 
 void Simulation::start(int measurements, double k0_, double k3_, int targetVolume_, int target2Volume_, int seed, int thermalSteps, int kSteps) {
 	k0 = k0_;
