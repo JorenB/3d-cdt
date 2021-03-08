@@ -23,11 +23,12 @@ public:
 		assert(dict.find("target2Volume") != dict.end());
 		assert(dict.find("seed") != dict.end());
 		assert(dict.find("fileID") != dict.end());
-		assert(dict.find("measurements") != dict.end());
-		assert(dict.find("thermalSteps") != dict.end());
-		assert(dict.find("kSteps") != dict.end());
+		assert(dict.find("sweeps") != dict.end());
+		assert(dict.find("ksteps") != dict.end());
+		assert(dict.find("thermalSweeps") != dict.end());
 		assert(dict.find("strictness") != dict.end());
 		assert(dict.find("infile") != dict.end());
+		assert(dict.find("outfile") != dict.end());
 		assert(dict.find("k3") != dict.end());
 	}
 

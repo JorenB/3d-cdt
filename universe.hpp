@@ -16,6 +16,7 @@ public:
 	static std::vector<int> slabSizes;
 	static std::vector<int> sliceSizes;
 	static std::string fID;
+	static std::string OutFile;
 
 	static int strictness;
 
@@ -26,7 +27,6 @@ public:
 
 	static bool initialize(std::string geometryFilename, std::string fID, int strictness);
 
-	static bool exportGeometry();
 	static bool exportGeometry(std::string geometryFilename);
 
 	static bool move26(Tetra::Label t);

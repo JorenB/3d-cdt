@@ -17,116 +17,99 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {4, 1, 10};
 
-void Simulation::start(int measurements, double k0_, double k3_, int targetVolume_, int target2Volume_, int seed, int thermalSteps, int kSteps) {
-	k0 = k0_;
+void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile) {
 	targetVolume = targetVolume_;
-	target2Volume = target2Volume_;
+	target2Volume = target2Volume_;		
+	k3 = k3_;
+	k0 = k0_;
 
-	for (auto o : observables3d) {
+	for (auto o : observables3d) 
 		o->clear();
-	}
-	for (auto o : observables2d) {
+	
+	for (auto o : observables2d) 
 		o->clear();
-	}
+	
 
 	rng.seed(seed);
-	
-	k3 = k3_;
 
 	measuring = true;
-	
-	bool fromThermal = false;  // If the input is already thermalized, skip this part 
-	int maN3 = 0;  // Moving average of N3 just for checkup purposes.
+//////////////////////////////////////////////////////////////////////
+// ********************** START THERMAL SWEEPS ******************** //
+//////////////////////////////////////////////////////////////////////
 
-	if(fromThermal == false) {  
-		// Pump up volume to the target + some moves just for spice
-		printf(" * * move to target 3vol * * \n");
-		while (Tetra::size() < targetVolume) {
-			moveAdd();		
-			moveShift();
-			moveShiftD();
-			moveShiftI();
-			moveShiftID();
-			moveFlip();
-		}  
-		printf(" * * done * * \n\n");
+printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Target2d: %d\t \n", k0, k3, epsilon, thermalSweeps, sweeps, targetVolume, target2Volume);
 
-		for (int i = 0; i < thermalSteps; i++) {  // thermalization phase
-			int total2v = 0;
-			for (auto ss : Universe::sliceSizes) total2v += ss;
-			int avg2v = total2v / Universe::nSlices;
+	for (int i = 0; i < thermalSweeps; i++) {  // thermalization phase
+		int total2v = 0;
+		for (auto ss : Universe::sliceSizes) 
+			total2v += ss;
 
-			printf("THERMAL: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d  avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), maN3, avg2v);
-			printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t ksteps: %d\n", k0, k3, epsilon, thermalSteps, kSteps);
+		int avg2v = total2v / Universe::nSlices;
 
-			for (int j = 0; j < kSteps * 1000; j++) {
+		printf("Thermal: i: %d\t  Current Volume: %d avgslice: %d k3:  %g\t \n",i, Tetra::size(), avg2v, k3);
+
+		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
+
+		tune();  // tune k3 one step at each sweep
+
+
+		if ( i % 10 == 0) 
+			Universe::exportGeometry(OutFile);
+				
+		
+		if (observables3d.size() > 0) 
+			for (auto o : observables3d) 
+				o->measure();
+				
+
+		if (target2Volume > 0) { 
+			bool hit = false;
+			do {
 				attemptMove();
-			}
-
-			tune();  // tune k3 one step
-			//Universe::check();
-
-			maN3 *= i;  // multiply the average with the previous i		
-			maN3 += Tetra::size();  // add the current size to the sum
-			maN3 /= (i + 1);  // calculate average
-
-			if (false) {
-			//if (target2Volume > 0) {
-				bool hit = false;
-				//printf("move to target 2vol...\n");
-				do {
-					attemptMove();
-					for (auto s : Universe::sliceSizes) {
-						if (s == target2Volume) {
-							hit = true;
-							break;
-						}
+				for (auto s : Universe::sliceSizes) {
+					if (s == target2Volume) {
+						hit = true;
+						break;
 					}
-				} while (!hit);
-				//printf("done\n");
-
-				prepare();
-				for (auto o : observables2d) {
-					//printf("m2d\n");
-					o->measure();
 				}
-			}  // it should be possible to have both two-dimensional and three-dimensional measurements in principle, I think
-			else {
-				prepare();
-				for (auto o : observables3d) {
-					printf("m\n");
-					o->measure();
-				}
-			}
+			} while (!hit);
+					
+			prepare();
+			for (auto o : observables2d) 
+				o->measure();
+				
 		}
-	}  // end thermalization
+	}
 
-	maN3 = 0; // reset moving average to 0
+////////////////////////////////////////////////////////////////////
+// ********************** END THERMAL SWEEPS ******************** //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+// ********************** START MEASURE SWEEPS ****************** //
+////////////////////////////////////////////////////////////////////
+	printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon);
 
-	for (int i = 0; i < measurements; i++) {  // measurement phase
-		maN3 *= i;
-		maN3 += Tetra::size();
-		maN3 /= (i+1);
+	for (int i = 0; i < sweeps; i++) {  // number of measurement sweeps
 
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) total2v += ss;
-		int avg2v = total2v / Universe::nSlices;
-		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d MovingAverageN3: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), maN3, avg2v);
-
+			int avg2v = total2v / Universe::nSlices;
+		
+		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), avg2v);
 
 		tune();
 		//Universe::check();
-		printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon, thermalSteps, kSteps);
+		
 
-		sweep(targetVolume * 1000);
+		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
-		Universe::exportGeometry();
-
-		if (observables3d.size() > 0) {
-			for (auto o : observables3d) {
+		if (sweeps % (i/10 == 0)) 
+			Universe::exportGeometry(OutFile);
+		
+		if (observables3d.size() > 0) 
+			for (auto o : observables3d) 
 				o->measure();
-			}
-		}
+		
 
 		if (target2Volume > 0) { 
 			bool hit = false;
@@ -146,7 +129,13 @@ void Simulation::start(int measurements, double k0_, double k3_, int targetVolum
 			}
 		}
 	}
+
+//////////////////////////////////////////////////////////////////
+// ********************** END MEASURE SWEEPS ****************** //
+//////////////////////////////////////////////////////////////////
+
 }
+
 
 int Simulation::attemptMove() {
 	std::array<int, 3> cumFreqs = {0, 0, 0};
@@ -208,7 +197,7 @@ int Simulation::attemptMove() {
 	return 0;
 }
 
-std::vector<int> Simulation::sweep(int n) {
+std::vector<int> Simulation::PerformSweep(int n) {
 	std::vector<int> moves(6, 0);
 	for (int i = 0; i < n; i++) {
 		//printf("mov%d \n", i);

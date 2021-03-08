@@ -8,6 +8,7 @@ int Universe::nSlices = 0;
 std::vector<int> Universe::slabSizes;
 std::vector<int> Universe::sliceSizes;
 std::string Universe::fID;
+std::string Universe::OutFile;
 int Universe::strictness;
 std::default_random_engine Universe::rng(0);
 Bag<Tetra, Tetra::pool_size> Universe::tetrasAll(rng);
@@ -131,9 +132,6 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 	return true;
 }
 
-bool Universe::exportGeometry() {
-	return exportGeometry("geometries/conf-" + fID + ".dat");
-}
 
 bool Universe::exportGeometry(std::string geometryFilename) {
 	updateGeometry();

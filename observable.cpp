@@ -9,11 +9,11 @@ void Observable::write() {
     std::string filename = data_dir + name + "-" + identifier + extension;
 
 	std::ifstream infile(filename);
-	if (!infile.good()) { printf("output file deleted\n"); exit(1); }
-	infile.close();
+	//if (!infile.good()) { printf("output file deleted\n"); exit(1); }
+	//infile.close();
 
     std::ofstream file;
-    file.open(filename, std::ios::out | std::ios::app);
+    file.open(filename, std::ios::app); // | std::ios::out);
 
 	assert(file.is_open());
 
@@ -27,7 +27,7 @@ void Observable::clear() {
     std::string filename = data_dir + name + "-" + identifier + extension;
 
     std::ofstream file;
-    file.open(filename, std::ios::out | std::ios::trunc);
+    file.open(filename, std::ios::app);// | std::ios::trunc);
 	
 	assert(file.is_open());
 

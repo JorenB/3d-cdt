@@ -25,18 +25,17 @@ int main(int argc, const char * argv[]) {
 	int targetVolume = cfr.getInt("targetVolume");
 	int target2Volume = cfr.getInt("target2Volume");
 	int genus = cfr.getInt("genus");
-
 	int seed = cfr.getInt("seed");
-	std::string fID = cfr.getString("fileID");
-	int measurements = cfr.getInt("measurements");
-
-	std::string InFile = cfr.getString("infile");
-
 	int strictness = cfr.getInt("strictness");
 
-	int thermalSteps = cfr.getInt("thermalSteps"); // Number of thermalization sweeps
-	int kSteps = cfr.getInt("kSteps");  // Number of thousand steps in a sweep
-	int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
+	std::string fID = cfr.getString("fileID");
+	std::string OutFile = cfr.getString("outfile");
+	std::string InFile = cfr.getString("infile");
+	
+	int ksteps = cfr.getInt("ksteps");
+	int sweeps = cfr.getInt("sweeps");
+	int thermalSweeps = cfr.getInt("thermalSweeps"); // Number of thermalization sweeps
+	//int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
 
 	double k3_s = cfr.getDouble("k3"); // Cosmological constant from input
 	
@@ -50,11 +49,11 @@ int main(int argc, const char * argv[]) {
 	printf("* * * Initialized * * *\n");
 	printf("#######################\n\n");
 
-	CNum cnum(fID);
-	Simulation::addObservable2d(cnum);
+	//CNum cnum(fID);s
+	//Simulation::addObservable2d(cnum);
 	
-	MaxCNum maxcnum(fID);
-	Simulation::addObservable3d(maxcnum);
+	//MaxCNum maxcnum(fID);
+	//Simulation::addObservable3d(maxcnum);
 
 	VolumeProfile vp3(fID);
 	Simulation::addObservable3d(vp3);
@@ -62,8 +61,8 @@ int main(int argc, const char * argv[]) {
 	//VolumeProfile vp(fID);
 	//Simulation::addObservable2d(vp);
 	
-	Tau tau(fID);
-	Simulation::addObservable3d(tau);
+	//Tau tau(fID);
+	//Simulation::addObservable3d(tau);
 
 	//Hausdorff2d haus(fID, true);
 	//Hausdorff2d haus(fID, false);
@@ -72,7 +71,7 @@ int main(int argc, const char * argv[]) {
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);
 	
-	Simulation::start(measurements, k0, k3_s, targetVolume, target2Volume, seed, thermalSteps, kSteps);
+	Simulation::start(k0, k3_s, sweeps, thermalSweeps, ksteps, targetVolume, target2Volume, seed, OutFile);
 	
 	printf("\n\n####################\n");
 	printf("* * * Finished * * *\n");

@@ -860,14 +860,14 @@ else:
     list3 = np.vstack((S_center,S_missing))
 
     
-list2 = getTrianglelList(list3)
-list1 = getLinklList(list2)
+#list2 = getTrianglelList(list3)
+#list1 = getLinklList(list2)
 
 num0 = max(list3.flatten())+1
 
-X = len(list3)-len(list2)+len(list1)-num0
+#X = len(list3)-len(list2)+len(list1)-num0
 
-print("\n N3,N2,N1,N0,X: ",len(list3),len(list2),len(list1),num0,X)
+#print("\n N3,N2,N1,N0,X: ",len(list3),len(list2),len(list1),num0,X)
 
 Simplex_list = FindPairs(list3)
 

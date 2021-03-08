@@ -22,7 +22,8 @@ DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
 all: $(MAIN)
 
 clean:
-	$(RM) $(OBJECTS) $(DEPENDS) $(MAIN)
+	$(RM) $(OBJECTS) $(DEPENDS) 
+#$(MAIN)
 
 # Linking the executable from the object files
 $(MAIN): $(OBJECTS)
