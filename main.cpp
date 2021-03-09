@@ -33,15 +33,21 @@ int main(int argc, const char * argv[]) {
 	std::string InFile = cfr.getString("infile");
 	
 	int ksteps = cfr.getInt("ksteps");
-	int sweeps = cfr.getInt("sweeps");
 	int thermalSweeps = cfr.getInt("thermalSweeps"); // Number of thermalization sweeps
-	//int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
+	int sweeps = cfr.getInt("sweeps");  // Number of measurement sweeps 
 
 	double k3_s = cfr.getDouble("k3"); // Cosmological constant from input
+	
+	int v1 = cfr.getInt("v1");
+	int v2 = cfr.getInt("v2");
+	int v3 = cfr.getInt("v3");
+
 	
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
 	printf("strictness: %d\n", strictness);
+
+
 
 	Universe::initialize(InFile, fID, strictness);
 
@@ -71,7 +77,7 @@ int main(int argc, const char * argv[]) {
 	//Hausdorff2dDual hausd(fID);
 	//Simulation::addObservable2d(hausd);
 	
-	Simulation::start(k0, k3_s, sweeps, thermalSweeps, ksteps, targetVolume, target2Volume, seed, OutFile);
+	Simulation::start(k0, k3_s, sweeps, thermalSweeps, ksteps, targetVolume, target2Volume, seed, OutFile,v1,v2,v3);
 	
 	printf("\n\n####################\n");
 	printf("* * * Finished * * *\n");

@@ -25,6 +25,9 @@ public:
 		assert(dict.find("fileID") != dict.end());
 		assert(dict.find("sweeps") != dict.end());
 		assert(dict.find("ksteps") != dict.end());
+assert(dict.find("v1") != dict.end());
+assert(dict.find("v2") != dict.end());
+assert(dict.find("v3") != dict.end());
 		assert(dict.find("thermalSweeps") != dict.end());
 		assert(dict.find("strictness") != dict.end());
 		assert(dict.find("infile") != dict.end());

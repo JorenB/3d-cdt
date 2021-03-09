@@ -17,7 +17,12 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {4, 1, 10};
 
-void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile) {
+void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile, int v1, int v2, int v3) {
+
+
+
+	Simulation::moveFreqs = {v1, v2, v3};
+
 	targetVolume = targetVolume_;
 	target2Volume = target2Volume_;		
 	k3 = k3_;
@@ -46,7 +51,7 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 
 		int avg2v = total2v / Universe::nSlices;
 
-		printf("Thermal: i: %d\t  Current Volume: %d avgslice: %d k3:  %g\t \n",i, Tetra::size(), avg2v, k3);
+		printf("Thermal: i: %d\t  Current Volume: %d avgslice: %d k3:  %g v1: %d v2: %d v3: %d\n",i, Tetra::size(), avg2v, k3, v1, v2, v3);
 
 		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
@@ -392,85 +397,26 @@ void Simulation::prepare() {
 
 void Simulation::tune() { 
 
-	double loc_epsilon = 0.00001;
+	double delta_k3 = 0.00001;
+	double ratio = 100;
 
 	int border_far = targetVolume*0.5; 
 	int border_close = targetVolume*0.05;
 	int border_vclose = targetVolume*0.001; 
 
-	double ratio = 100;
-
+	
 			
-		if ((targetVolume - Tetra::size()) > border_far) {
-			k3 -= loc_epsilon*ratio*100;
-		} else if ((targetVolume - Tetra::size()) < -border_far) {
-			k3 += loc_epsilon*ratio*100;
-		} else if ((targetVolume - Tetra::size()) > border_close) {
-			k3 -= loc_epsilon*100;
-		} else if ((targetVolume - Tetra::size()) < -border_close) {
-			k3 += loc_epsilon*100;
-		} else if ((targetVolume - Tetra::size()) > border_vclose) {
-			k3 -= loc_epsilon*10;
-		} else if ((targetVolume - Tetra::size()) < -border_vclose) {
-			k3 += loc_epsilon*10;
-		}
-
-/*
-	bool done = false;
-
-	for (int k = 0; k < 1 && !done; k++) {
-		for (int i = 0; i < targetVolume; i++) {
-			std::vector<int> tmps = sweep(100);
-			for (int j = 0; j < 6; j++) success[j] += tmps[j];
-			volumes.push_back(Tetra::size());
-		}
-
-		double avg = 0.0;
-		for (auto v : volumes) avg += (double) v;
-		avg /= volumes.size();
-
-		double sd = 0.0;
-		for (auto v : volumes) sd += ((double) v - avg)*((double) v - avg);
-		sd /= volumes.size();
-
-		if ((targetVolume - avg)*(targetVolume - avg) < 2*sd) {
-			epsilon *= 0.7;
-			if (epsilon < 0.02) {
-				epsilon = 0.02;
-				k3 -= 0.003 * (targetVolume - avg)/sqrt(sd);
-			}
-		} else if ((targetVolume - avg)*(targetVolume - avg) > 8*sd) {
-			epsilon *= 1.2;
-			if (epsilon > 5.0) epsilon = 5.0;
-		} else if ((targetVolume - avg)*(targetVolume - avg) < 0.04*targetVolume*targetVolume) {
-			k3 += 0.6*(avg - targetVolume)/abs((avg-targetVolume)) * epsilon;
-		}
-		volumes.clear();
-
-		//if (k >= tuneSteps && abs(avg-targetVolume) < 0.1*targetVolume && epsilon < 0.021) done = true;
-
-		//if ((targetVolume - avg)*(targetVolume - avg) < 0.01*targetVolume*targetVolume) {
-		//  int totalFreq = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
-		//  double rate[3];
-		//  rate[0] = totalFreq/(double) moveFreqs[0] * (success[1] + success[2])/1000000;
-		//  rate[1] = totalFreq/(double) moveFreqs[0] * (success[3])/1000000;
-		//  rate[2] = totalFreq/(double) moveFreqs[0] * (success[4] + success[5])/1000000;
-
-		//  double addRate = totalFreq/(double) moveFreqs[0] * (success[1])/1000000;
-		//  double delRate = totalFreq/(double) moveFreqs[0] * (success[2])/1000000;
-
-		//  printf("rates: %f - %f - %f\n", rate[0], rate[1], rate[2]);
-		//  printf("add: %f, del: %f\n", addRate, delRate);
-		//  }
-
-		//printf("step %d - epsilon: %f, k3: %f, avg: %d, sd: %d\n", k, epsilon, k3, (int) avg, (int) sd);
-		//printf("fail: %d, add: %d, del: %d, flip: %d, shift: %d, ishift: %d\n", success[0], success[1], success[2], success[3], success[4], success[5]);
-
-		//Universe::check();
-
-		//success = std::vector<int>(6,0);
-	//}//
-*/
-
-
+		if ((targetVolume - Tetra::size()) > border_far) 
+			k3 -= delta_k3*ratio*100;
+		else if ((targetVolume - Tetra::size()) < -border_far) 
+			k3 += delta_k3*ratio*100;
+		else if ((targetVolume - Tetra::size()) > border_close) 
+			k3 -= delta_k3*100;
+		else if ((targetVolume - Tetra::size()) < -border_close)
+			k3 += delta_k3*100;
+		else if ((targetVolume - Tetra::size()) > border_vclose)
+			k3 -= delta_k3*10;
+		else if ((targetVolume - Tetra::size()) < -border_vclose)
+			k3 += delta_k3*10;
+		
 }

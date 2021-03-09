@@ -11,7 +11,7 @@ class Simulation {
 public:
 	static double lambda;
 
-	static void start(double k0, double k3, int sweeps, int thermalSweeps,int ksteps,  int targetVolume_, int target2Volume, int seed,  std::string OutFile);
+	static void start(double k0, double k3, int sweeps, int thermalSweeps,int ksteps,  int targetVolume_, int target2Volume, int seed,  std::string OutFile, int v1, int v2, int v3);
 
 	static void addObservable3d(Observable& o) {
 		observables3d.push_back(&o);
