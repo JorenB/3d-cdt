@@ -15,7 +15,7 @@ bool Simulation::measuring = false;
 std::vector<Observable*> Simulation::observables3d;
 std::vector<Observable*> Simulation::observables2d;
 
-std::array<int, 3> Simulation::moveFreqs = {4, 1, 10};
+std::array<int, 3> Simulation::moveFreqs = {0, 0, 0};
 
 void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile, int v1, int v2, int v3) {
 
@@ -86,6 +86,7 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 		}
 	}
 
+
 ////////////////////////////////////////////////////////////////////
 // ********************** END THERMAL SWEEPS ******************** //
 ////////////////////////////////////////////////////////////////////
@@ -143,14 +144,10 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 
 
 int Simulation::attemptMove() {
-	std::array<int, 3> cumFreqs = {0, 0, 0};
+	std::array<int, 3> cumFreqs = {moveFreqs[0], moveFreqs[1]+moveFreqs[0], moveFreqs[2]+moveFreqs[1]+moveFreqs[0]};
 	int freqTotal = 0;
-	int prevCumFreq = 0;
-	for (int i = 0; i < moveFreqs.size(); i++) {
-		freqTotal += moveFreqs[i];
-		cumFreqs[i] = prevCumFreq + moveFreqs[i];
-		prevCumFreq = cumFreqs[i];
-	}
+	
+	freqTotal = cumFreqs[0]+cumFreqs[1]+cumFreqs[2];
 
 	std::uniform_int_distribution<> moveGen(0, freqTotal-1);
 	std::uniform_int_distribution<> binGen(0, 1);
@@ -161,36 +158,41 @@ int Simulation::attemptMove() {
 		if (binGen(rng) == 0) {
 			//printf("a\n");
 			if (moveAdd()) return 1;
+			else return -1;
 		} else {
 			//printf("d\n");
 			if (moveDelete()) return 2;
+			else return -2;
 		}
 	} else if (cumFreqs[0] <= move && move < cumFreqs[1]) {
 		//printf("f\n");
-		if (moveFlip()) { 
-			//printf("fls\n"); 
-			return 3; 
-		}
+		if (moveFlip())  return 3;
+		else return -3;
+		
 	} else if (cumFreqs[1] <= move) {
 		if (binGen(rng) == 0) {
 			//printf("shiftf\n");
 			if (binGen(rng) == 0) { 
 				//printf("u\n"); 
-				if (moveShift()) return 4; 
+				if (moveShift()) return 4;
+				else return -4; 
 			}
 			else { 
 			  //printf("d\n"); 
 				if (moveShiftD()) return 4; 
+				else return -4;
 			}
 		} else {
 			//printf("shiftb\n");
 			if (binGen(rng) == 0) { 
 				//printf("u\n"); 
 				if (moveShiftI()) return 5; 
+				else return -5;
 			}
 			else { 
 			//printf("d\n"); 
 				if (moveShiftID()) return 5; 
+				else return -5;
 			}
 		}
 	}
@@ -204,13 +206,50 @@ int Simulation::attemptMove() {
 
 std::vector<int> Simulation::PerformSweep(int n) {
 	std::vector<int> moves(6, 0);
+	std::vector<int> failed_moves(6, 0);
 	for (int i = 0; i < n; i++) {
 		//printf("mov%d \n", i);
 
-		int move = attemptMove();
+		
+		int move_num = attemptMove(); 
+		int move = abs(move_num);
 		moves[move]++;
+		if (move_num < 0)
+			failed_moves[move]++;
+		
+
 		//Universe::check();
 	}
+		
+	int m1 = moves[1] + moves[2];
+	int m2 = moves[3];
+	int m3 = moves[4] + moves[5];
+
+	int f1 = failed_moves[1] + failed_moves[2];
+	int f2 = failed_moves[3];
+	int f3 = failed_moves[4] + failed_moves[5];
+
+
+	printf("%d\t%d\t%d\t\n", m1, m2, m3);
+	printf("%d\t%d\t%d\t\n", f1, f2, f3);
+	
+	if (m1 == f1)
+		m1++,
+		m1++,
+		f1++;
+	if (m2 == f2)
+		m2++,
+		m2++,
+		f2++;
+	if (m3 == f3)
+		m3++,
+		m3++,
+		f3++;
+	double r1 = double(m1)/double(f1);
+	double r2 = double(m2)/double(f2);
+	double r3 = double(m3)/double(f3);
+	
+	printf("%g\t%g\t%g\t\n", r1,r2,r3 );
 
 	return moves;
 }
