@@ -436,26 +436,31 @@ void Simulation::prepare() {
 
 void Simulation::tune() { 
 
-	double delta_k3 = 0.00001;
+	double delta_k3 = 0.000001;
 	double ratio = 100;
 
 	int border_far = targetVolume*0.5; 
 	int border_close = targetVolume*0.05;
-	int border_vclose = targetVolume*0.001; 
+	int border_vclose = targetVolume*0.002; 
+	int border_vvclose = targetVolume*0.0001; 
 
 	
 			
 		if ((targetVolume - Tetra::size()) > border_far) 
-			k3 -= delta_k3*ratio*100;
+			k3 -= delta_k3*ratio*1000;
 		else if ((targetVolume - Tetra::size()) < -border_far) 
-			k3 += delta_k3*ratio*100;
+			k3 += delta_k3*ratio*1000;
 		else if ((targetVolume - Tetra::size()) > border_close) 
-			k3 -= delta_k3*100;
+			k3 -= delta_k3*1000;
 		else if ((targetVolume - Tetra::size()) < -border_close)
-			k3 += delta_k3*100;
+			k3 += delta_k3*1000;
 		else if ((targetVolume - Tetra::size()) > border_vclose)
-			k3 -= delta_k3*10;
+			k3 -= delta_k3*100;
 		else if ((targetVolume - Tetra::size()) < -border_vclose)
-			k3 += delta_k3*10;
+			k3 += delta_k3*100;
+		else if ((targetVolume - Tetra::size()) > border_vvclose)
+			k3 -= delta_k3*20;
+		else if ((targetVolume - Tetra::size()) < -border_vvclose)
+			k3 += delta_k3*20;
 		
 }
