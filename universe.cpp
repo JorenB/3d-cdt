@@ -10,6 +10,7 @@ std::vector<int> Universe::sliceSizes;
 std::string Universe::fID;
 std::string Universe::OutFile;
 int Universe::strictness;
+int Universe::volfix_switch;
 std::default_random_engine Universe::rng(0);
 Bag<Tetra, Tetra::pool_size> Universe::tetrasAll(rng);
 Bag<Tetra, Tetra::pool_size> Universe::tetras31(rng);
@@ -26,13 +27,14 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize(std::string geometryFilename, std::string fID_, int strictness_) {
+bool Universe::initialize(std::string geometryFilename, std::string fID_, int strictness_, int volfix_switch_) {
 	fID = fID_;
 	std::ifstream infile(geometryFilename.c_str());
 
 	assert(!infile.fail());
 
 	strictness = strictness_;
+	volfix_switch = volfix_switch_;
 
 	bool ordered;  // first line is a switch indicating whether tetrahedron data is ordered by convention
 	infile >> ordered;
@@ -1148,7 +1150,6 @@ void Universe::check() {
 		}
 	}
 
-	
 
 	printf("====================================================\n");
 
@@ -1156,7 +1157,6 @@ void Universe::check() {
 
 // export geometry as Mathematica graph (very much redundant information)
 void Universe::exportGraph() {
-	
 
 	printf("\n");
 }

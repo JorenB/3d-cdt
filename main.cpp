@@ -38,6 +38,8 @@ int main(int argc, const char * argv[]) {
 
 	double k3_s = cfr.getDouble("k3"); // Cosmological constant from input
 	
+	int volfix_switch = cfr.getInt("volfix_switch");
+	
 	int v1 = cfr.getInt("v1");
 	int v2 = cfr.getInt("v2");
 	int v3 = cfr.getInt("v3");
@@ -49,7 +51,7 @@ int main(int argc, const char * argv[]) {
 
 
 
-	Universe::initialize(InFile, fID, strictness);
+	Universe::initialize(InFile, fID, strictness,volfix_switch);
 
 	printf("\n\n#######################\n");
 	printf("* * * Initialized * * *\n");

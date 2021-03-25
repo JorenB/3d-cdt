@@ -19,15 +19,13 @@ std::array<int, 3> Simulation::moveFreqs = {0, 0, 0};
 
 void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile, int v1, int v2, int v3) {
 
-
-
 	Simulation::moveFreqs = {v1, v2, v3};
 
 	targetVolume = targetVolume_;
 	target2Volume = target2Volume_;		
 	k3 = k3_;
 	k0 = k0_;
-
+	
 	for (auto o : observables3d) 
 		o->clear();
 	
@@ -50,8 +48,10 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 			total2v += ss;
 
 		int avg2v = total2v / Universe::nSlices;
+		double n31 = Universe::tetras31.size();
+		int n3 = Universe::tetrasAll.size();
 
-		printf("Thermal: i: %d\t  Current Volume: %d avgslice: %d k3:  %g v1: %d v2: %d v3: %d\n",i, Tetra::size(), avg2v, k3, v1, v2, v3);
+		printf("Thermal: i: %d\t  Tetra::size: %d tetras31:  %g k3: %g \n",i, n3, n31, k3);
 
 		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
@@ -230,8 +230,8 @@ std::vector<int> Simulation::PerformSweep(int n) {
 	int f3 = failed_moves[4] + failed_moves[5];
 
 
-	printf("%d\t%d\t%d\t\n", m1, m2, m3);
-	printf("%d\t%d\t%d\t\n", f1, f2, f3);
+//	printf("%d\t%d\t%d\t\n", m1, m2, m3);
+//	printf("%d\t%d\t%d\t\n", f1, f2, f3);
 	
 	if (m1 == f1)
 		m1++,
@@ -257,14 +257,22 @@ std::vector<int> Simulation::PerformSweep(int n) {
 bool Simulation::moveAdd() {
 	double n31 = Universe::tetras31.size();
 	int n3 = Universe::tetrasAll.size();
-
+	
+	int vol_switch = Universe::volfix_switch;
+	
 	double edS = exp(1 * k0 - 4 * k3);
 	//double rg = n0/(n0+1.0)*n31/(n31+4.0);
 	double rg = n31 / (n31 + 2.0);
 	double ar = edS*rg;
-
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 4.0 : -4.0));
-
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 4.0 : -4.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 4.0 : -4.0));
+	}
+	
+	
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
@@ -280,13 +288,22 @@ bool Simulation::moveAdd() {
 bool Simulation::moveDelete() {
 	double n31 = Universe::tetras31.size();
 	int n3 = Universe::tetrasAll.size();
-
+	int vol_switch = Universe::volfix_switch;
+	
+	
 	double edS = exp(-1 * k0 + 4 * k3);
 	//double rg = n0/(n0-1.0)*n31/(n31-4.0);
 	double rg = n31/(n31-2.0);
 	double ar = edS*rg;
-
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -4.0 : 4.0));
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -4.0 : 4.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -4.0 : 4.0));
+	}
+	
+	
 
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
@@ -322,7 +339,17 @@ bool Simulation::moveShift() {
 	double rg = 1.0;
 	double ar = edS*rg;
 	int n3 = Universe::tetrasAll.size();
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	double n31 = Universe::tetras31.size();
+	int vol_switch = Universe::volfix_switch;
+	
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 1.0 : -1.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	}
+	
 
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
@@ -344,7 +371,17 @@ bool Simulation::moveShiftD() {
 	double rg = 1.0;
 	double ar = edS*rg;
 	int n3 = Universe::tetrasAll.size();
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	double n31 = Universe::tetras31.size();
+	int vol_switch = Universe::volfix_switch;
+	
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 1.0 : -1.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	}
+	
 
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
@@ -367,8 +404,17 @@ bool Simulation::moveShiftI() {
 	double rg = 1.0;
 	double ar = edS*rg;
 	int n3 = Universe::tetrasAll.size();
-
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	double n31 = Universe::tetras31.size();
+	
+	int vol_switch = Universe::volfix_switch;
+	
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -1.0 : 1.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	}
 
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
@@ -400,8 +446,16 @@ bool Simulation::moveShiftID() {
 	double rg = 1.0;
 	double ar = edS*rg;
 	int n3 = Universe::tetrasAll.size();
-
-	if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	double n31 = Universe::tetras31.size();
+	int vol_switch = Universe::volfix_switch;
+	
+	
+	if (vol_switch == 0) {
+		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -1.0 : 1.0));
+	}
+	else {
+		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	}
 
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
@@ -443,24 +497,33 @@ void Simulation::tune() {
 	int border_close = targetVolume*0.05;
 	int border_vclose = targetVolume*0.002; 
 	int border_vvclose = targetVolume*0.0001; 
-
 	
+	int vol_switch = Universe::volfix_switch;
+	
+	int fixvolume = 0;
+	
+	if (vol_switch == 0) {
+		fixvolume = Universe::tetras31.size();
+	}
+	else {
+		fixvolume = Universe::tetrasAll.size();
+	}	
 			
-		if ((targetVolume - Tetra::size()) > border_far) 
+		if ((targetVolume - fixvolume) > border_far) 
 			k3 -= delta_k3*ratio*1000;
-		else if ((targetVolume - Tetra::size()) < -border_far) 
+		else if ((targetVolume - fixvolume) < -border_far) 
 			k3 += delta_k3*ratio*1000;
-		else if ((targetVolume - Tetra::size()) > border_close) 
+		else if ((targetVolume - fixvolume) > border_close) 
 			k3 -= delta_k3*1000;
-		else if ((targetVolume - Tetra::size()) < -border_close)
+		else if ((targetVolume - fixvolume) < -border_close)
 			k3 += delta_k3*1000;
-		else if ((targetVolume - Tetra::size()) > border_vclose)
+		else if ((targetVolume - fixvolume) > border_vclose)
 			k3 -= delta_k3*100;
-		else if ((targetVolume - Tetra::size()) < -border_vclose)
+		else if ((targetVolume - fixvolume) < -border_vclose)
 			k3 += delta_k3*100;
-		else if ((targetVolume - Tetra::size()) > border_vvclose)
+		else if ((targetVolume - fixvolume) > border_vvclose)
 			k3 -= delta_k3*20;
-		else if ((targetVolume - Tetra::size()) < -border_vvclose)
+		else if ((targetVolume - fixvolume) < -border_vvclose)
 			k3 += delta_k3*20;
 		
 }
