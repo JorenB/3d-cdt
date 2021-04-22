@@ -4,7 +4,7 @@
 void CNum::process() {
 	std::string tmp = "";
 	
-	std::array<int, 250> histogram;
+	std::array<int, 750> histogram;
 	std::fill(histogram.begin(), histogram.end(), 0);
 	
 	for (auto v : Universe::vertices) {
