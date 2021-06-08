@@ -9,7 +9,7 @@ double Simulation::k3 = 0;
 std::default_random_engine Simulation::rng(0);  // TODO(JorenB): seed properly
 int Simulation::targetVolume = 0;
 int Simulation::target2Volume = 0;
-double Simulation::epsilon = 0.02;
+double Simulation::epsilon = 0.00004;
 bool Simulation::measuring = false;
 
 std::vector<Observable*> Simulation::observables3d;
@@ -40,50 +40,28 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 // ********************** START THERMAL SWEEPS ******************** //
 //////////////////////////////////////////////////////////////////////
 
-printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Target2d: %d\t \n", k0, k3, epsilon, thermalSweeps, sweeps, targetVolume, target2Volume);
+	printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Target2d: %d\t \n", k0, k3, epsilon, thermalSweeps, sweeps, targetVolume, target2Volume);
 
 	for (int i = 0; i < thermalSweeps; i++) {  // thermalization phase
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) 
 			total2v += ss;
 
-		int avg2v = total2v / Universe::nSlices;
+		//int avg2v = total2v / Universe::nSlices;
 		double n31 = Universe::tetras31.size();
 		int n3 = Universe::tetrasAll.size();
 
 		printf("Thermal: i: %d\t  Tetra::size: %d tetras31:  %g k3: %g \n",i, n3, n31, k3);
 
-		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
+		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
 		tune();  // tune k3 one step at each sweep
 
-
-		if ( i % 10 == 0) 
+		if ( i % 100 == 0) 
 			Universe::exportGeometry(OutFile);
-				
-		
-		if (observables3d.size() > 0) 
-			for (auto o : observables3d) 
-				o->measure();
-				
 
-		if (target2Volume > 0) { 
-			bool hit = false;
-			do {
-				attemptMove();
-				for (auto s : Universe::sliceSizes) {
-					if (s == target2Volume) {
-						hit = true;
-						break;
-					}
-				}
-			} while (!hit);
-					
-			prepare();
-			for (auto o : observables2d) 
-				o->measure();
-				
-		}
+		for (auto o : observables3d) 
+			o->measure();
 	}
 
 
@@ -107,7 +85,7 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 		//Universe::check();
 		
 
-		PerformSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
+		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
 		if (sweeps % (i/10 == 0)) 
 			Universe::exportGeometry(OutFile);
@@ -128,7 +106,7 @@ printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Ta
 					}
 				}
 			} while (!hit);
-			
+
 			prepare();
 			for (auto o : observables2d) {
 				o->measure();
@@ -204,7 +182,7 @@ int Simulation::attemptMove() {
 	return 0;
 }
 
-std::vector<int> Simulation::PerformSweep(int n) {
+std::vector<int> Simulation::performSweep(int n) {
 	std::vector<int> moves(6, 0);
 	std::vector<int> failed_moves(6, 0);
 	for (int i = 0; i < n; i++) {
@@ -237,14 +215,17 @@ std::vector<int> Simulation::PerformSweep(int n) {
 		m1++,
 		m1++,
 		f1++;
+		
 	if (m2 == f2)
 		m2++,
 		m2++,
 		f2++;
+		
 	if (m3 == f3)
 		m3++,
 		m3++,
 		f3++;
+		
 	double r1 = double(m1)/double(f1);
 	double r2 = double(m2)/double(f2);
 	double r3 = double(m3)/double(f3);
@@ -266,13 +247,14 @@ bool Simulation::moveAdd() {
 	double ar = edS*rg;
 	
 	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 4.0 : -4.0));
+		//if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 4.0 : -4.0));
+		if (targetVolume > 0) ar *= exp(4 * epsilon * (targetVolume - n31 - 1));
 	}
 	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 4.0 : -4.0));
+		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 4.0 : -4.0));
+		if (targetVolume > 0) ar *= exp(8 * epsilon * (targetVolume - n3 - 2));
 	}
-	
-	
+
 	if (ar < 1.0) { 
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
@@ -297,10 +279,12 @@ bool Simulation::moveDelete() {
 	double ar = edS*rg;
 	
 	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -4.0 : 4.0));
+		//if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -4.0 : 4.0));
+		if (targetVolume > 0) ar *= exp(-4 * epsilon * (targetVolume - n31 - 1));
 	}
 	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -4.0 : 4.0));
+		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -4.0 : 4.0));
+		if (targetVolume > 0) ar *= exp(-8 * epsilon * (targetVolume - n3 - 2));
 	}
 	
 	
@@ -343,11 +327,9 @@ bool Simulation::moveShift() {
 	int vol_switch = Universe::volfix_switch;
 	
 	
-	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 1.0 : -1.0));
-	}
-	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	if (vol_switch == 1) {
+		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 	
 
@@ -375,11 +357,9 @@ bool Simulation::moveShiftD() {
 	int vol_switch = Universe::volfix_switch;
 	
 	
-	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 1.0 : -1.0));
-	}
-	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+	if (vol_switch == 1) {
+		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
+		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 	
 
@@ -409,11 +389,9 @@ bool Simulation::moveShiftI() {
 	int vol_switch = Universe::volfix_switch;
 	
 	
-	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -1.0 : 1.0));
-	}
-	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	if (vol_switch == 1) {
+		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+		if (targetVolume > 0) ar *= exp(-epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 
 	if (ar < 1.0) { 
@@ -450,11 +428,8 @@ bool Simulation::moveShiftID() {
 	int vol_switch = Universe::volfix_switch;
 	
 	
-	if (vol_switch == 0) {
-		if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -1.0 : 1.0));
-	}
-	else {
-		if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
+	if (vol_switch == 1) {
+		if (targetVolume > 0) ar *= exp(-epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 
 	if (ar < 1.0) { 

@@ -31,12 +31,12 @@ public:
 
 	static double k3_s;
 	
+	static double k0;
+	static double k3;
 
 private:
 	static std::default_random_engine rng;
 
-	static double k0;
-	static double k3;
 
 	static double epsilon;
 	static bool measuring;
@@ -44,7 +44,7 @@ private:
 	static std::vector<Observable*> observables3d;
 	static std::vector<Observable*> observables2d;
 
-	static std::vector<int> PerformSweep(int n);
+	static std::vector<int> performSweep(int n);
 
 	static bool moveAdd();
 	static bool moveDelete();
