@@ -42,7 +42,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 	printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Target2d: %d\t \n", k0, k3, epsilon, thermalSweeps, sweeps, targetVolume, target2Volume);
 
-	for (int i = 0; i < thermalSweeps; i++) {  // thermalization phase
+	for (int i = 1; i < thermalSweeps; i++) {  // thermalization phase
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) 
 			total2v += ss;
@@ -60,6 +60,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 		if ( i % 100 == 0) 
 			Universe::exportGeometry(OutFile);
 
+		prepare();
 		for (auto o : observables3d) 
 			o->measure();
 	}
@@ -73,7 +74,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 ////////////////////////////////////////////////////////////////////
 	printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon);
 
-	for (int i = 0; i < sweeps; i++) {  // number of measurement sweeps
+	for (int i = 1; i < sweeps; i++) {  // number of measurement sweeps
 
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) total2v += ss;
@@ -81,15 +82,13 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 		
 		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), avg2v);
 
-		tune();
-		//Universe::check();
-		
 
 		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
 		if (sweeps % (i/10 == 0)) 
 			Universe::exportGeometry(OutFile);
 		
+		prepare();
 		if (observables3d.size() > 0) 
 			for (auto o : observables3d) 
 				o->measure();
@@ -125,7 +124,7 @@ int Simulation::attemptMove() {
 	std::array<int, 3> cumFreqs = {moveFreqs[0], moveFreqs[1]+moveFreqs[0], moveFreqs[2]+moveFreqs[1]+moveFreqs[0]};
 	int freqTotal = 0;
 	
-	freqTotal = cumFreqs[0]+cumFreqs[1]+cumFreqs[2];
+	freqTotal = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
 
 	std::uniform_int_distribution<> moveGen(0, freqTotal-1);
 	std::uniform_int_distribution<> binGen(0, 1);
@@ -168,7 +167,7 @@ int Simulation::attemptMove() {
 				else return -5;
 			}
 			else { 
-			//printf("d\n"); 
+				//printf("d\n"); 
 				if (moveShiftID()) return 5; 
 				else return -5;
 			}
@@ -187,8 +186,6 @@ std::vector<int> Simulation::performSweep(int n) {
 	std::vector<int> failed_moves(6, 0);
 	for (int i = 0; i < n; i++) {
 		//printf("mov%d \n", i);
-
-		
 		int move_num = attemptMove(); 
 		int move = abs(move_num);
 		moves[move]++;
@@ -460,11 +457,10 @@ bool Simulation::moveShiftID() {
 
 void Simulation::prepare() {
 	Universe::updateGeometry();
-		//Universe::check();
+	//Universe::check();
 }
 
-void Simulation::tune() { 
-
+void Simulation::tune() {
 	double delta_k3 = 0.000001;
 	double ratio = 100;
 
@@ -472,33 +468,32 @@ void Simulation::tune() {
 	int border_close = targetVolume*0.05;
 	int border_vclose = targetVolume*0.002; 
 	int border_vvclose = targetVolume*0.0001; 
-	
+
 	int vol_switch = Universe::volfix_switch;
-	
+
 	int fixvolume = 0;
-	
+
 	if (vol_switch == 0) {
 		fixvolume = Universe::tetras31.size();
 	}
 	else {
 		fixvolume = Universe::tetrasAll.size();
 	}	
-			
-		if ((targetVolume - fixvolume) > border_far) 
-			k3 -= delta_k3*ratio*1000;
-		else if ((targetVolume - fixvolume) < -border_far) 
-			k3 += delta_k3*ratio*1000;
-		else if ((targetVolume - fixvolume) > border_close) 
-			k3 -= delta_k3*1000;
-		else if ((targetVolume - fixvolume) < -border_close)
-			k3 += delta_k3*1000;
-		else if ((targetVolume - fixvolume) > border_vclose)
-			k3 -= delta_k3*100;
-		else if ((targetVolume - fixvolume) < -border_vclose)
-			k3 += delta_k3*100;
-		else if ((targetVolume - fixvolume) > border_vvclose)
-			k3 -= delta_k3*20;
-		else if ((targetVolume - fixvolume) < -border_vvclose)
-			k3 += delta_k3*20;
-		
+
+	if ((targetVolume - fixvolume) > border_far) 
+		k3 -= delta_k3*ratio*1000;
+	else if ((targetVolume - fixvolume) < -border_far) 
+		k3 += delta_k3*ratio*1000;
+	else if ((targetVolume - fixvolume) > border_close) 
+		k3 -= delta_k3*1000;
+	else if ((targetVolume - fixvolume) < -border_close)
+		k3 += delta_k3*1000;
+	else if ((targetVolume - fixvolume) > border_vclose)
+		k3 -= delta_k3*100;
+	else if ((targetVolume - fixvolume) < -border_vclose)
+		k3 += delta_k3*100;
+	else if ((targetVolume - fixvolume) > border_vvclose)
+		k3 -= delta_k3*20;
+	else if ((targetVolume - fixvolume) < -border_vvclose)
+		k3 += delta_k3*20;
 }

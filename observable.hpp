@@ -23,6 +23,7 @@ public:
 
 	void clear();
 
+	static std::string data_dir;
 private:
 	std::string identifier;
 
@@ -44,7 +45,6 @@ protected:
 	static int distanceDual(Tetra::Label t1, Tetra::Label t2);
 	
 
-	std::string data_dir = "out/";
 	std::string extension = ".dat";
 	std::string output;
 };

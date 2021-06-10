@@ -4,9 +4,10 @@
 #include "observable.hpp"
 
 std::default_random_engine Observable::rng(0);  // TODO: seed properly
+std::string Observable::data_dir = "";
 
 void Observable::write() {
-    std::string filename = /*data_dir + */name + "-" + identifier + extension;
+    std::string filename = data_dir + "/" + name + "-" + identifier + extension;
 
 	std::ifstream infile(filename);
 	//if (!infile.good()) { printf("output file deleted\n"); exit(1); }
@@ -24,7 +25,7 @@ void Observable::write() {
 }
 
 void Observable::clear() {
-    std::string filename = data_dir + name + "-" + identifier + extension;
+    std::string filename = data_dir + "/" + name + "-" + identifier + extension;
 
     std::ofstream file;
     file.open(filename, std::ios::app);// | std::ios::trunc);

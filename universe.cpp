@@ -371,7 +371,7 @@ bool Universe::move62(Vertex::Label v) {
 		if (v0->scnum < 3) return false;
 		if (v1->scnum < 3) return false;
 		if (v2->scnum < 3) return false;
-	} else if (strictness == 2) {
+	} else if (strictness >= 2) {
 		// disallow self-energy insertions
 		if (v0->scnum < 4) return false;
 		if (v1->scnum < 4) return false;
@@ -473,11 +473,16 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	if (strictness >= 1) {
 		if (v1 == v3) return false;
 	}
-	if (strictness == 2) {
+	if (strictness >= 2) {
 		// disallow self-energy insertions in dual graph
 		if (v0->scnum == 3) { return false; }
 		if (v2->scnum == 3) { return false; }
+
 	}
+	if (strictness >= 3) {
+		if (v1->neighborsVertex(v3)) return false;
+	}
+
 
 
 	auto vt = t012->vs[3];
@@ -535,7 +540,7 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	v2->scnum--;
 	v3->scnum++;
 
-	if (strictness == 2) {
+	if (strictness >= 2) {
 		assert(v0->scnum >= 3);
 		assert(v2->scnum >= 3);
 	}
@@ -1149,10 +1154,7 @@ void Universe::check() {
 			assert(found);
 		}
 	}
-
-
 	printf("====================================================\n");
-
 }
 
 // export geometry as Mathematica graph (very much redundant information)

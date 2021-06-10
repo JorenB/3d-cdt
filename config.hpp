@@ -22,6 +22,7 @@ public:
 		assert(dict.find("targetVolume") != dict.end());
 		assert(dict.find("target2Volume") != dict.end());
 		assert(dict.find("seed") != dict.end());
+		assert(dict.find("outputDir") != dict.end());
 		assert(dict.find("fileID") != dict.end());
 		assert(dict.find("sweeps") != dict.end());
 		assert(dict.find("ksteps") != dict.end());
