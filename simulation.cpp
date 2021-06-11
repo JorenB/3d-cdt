@@ -42,7 +42,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 	printf("k0: %g, k3: %g, epsilon: %g \t thermal: %d \t sweeps: %d Target: %d\t Target2d: %d\t \n", k0, k3, epsilon, thermalSweeps, sweeps, targetVolume, target2Volume);
 
-	for (int i = 1; i < thermalSweeps; i++) {  // thermalization phase
+	for (int i = 1; i <= thermalSweeps; i++) {  // thermalization phase
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) 
 			total2v += ss;
@@ -74,7 +74,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 ////////////////////////////////////////////////////////////////////
 	printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon);
 
-	for (int i = 1; i < sweeps; i++) {  // number of measurement sweeps
+	for (int i = 1; i <= sweeps; i++) {  // number of measurement sweeps
 
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) total2v += ss;
