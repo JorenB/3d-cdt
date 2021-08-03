@@ -57,7 +57,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 		tune();  // tune k3 one step at each sweep
 
-		if ( i % 100 == 0) 
+		if ( i % 500 == 0) 
 			Universe::exportGeometry(OutFile);
 
 		prepare();
@@ -88,11 +88,18 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 		if (sweeps % (i/10 == 0)) 
 			Universe::exportGeometry(OutFile);
 		
-		prepare();
-		if (observables3d.size() > 0) 
+		if (observables3d.size() > 0) {
+			// remove if volume should fluctuate during measurements
+			if (targetVolume > 0) {
+				do {
+					attemptMove();
+				} while (Universe::tetrasAll.size() != targetVolume);
+			}
+
+			prepare();
 			for (auto o : observables3d) 
 				o->measure();
-		
+		}
 
 		if (target2Volume > 0) { 
 			bool hit = false;
@@ -191,7 +198,6 @@ std::vector<int> Simulation::performSweep(int n) {
 		moves[move]++;
 		if (move_num < 0)
 			failed_moves[move]++;
-		
 
 		//Universe::check();
 	}

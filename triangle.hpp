@@ -26,6 +26,13 @@ public:
 		trnbr = {tr0, tr1, tr2};
 	}
 
+	bool hasVertex(Vertex::Label v) {
+		for (int i = 0; i < 3; i++) {
+			if (vs[i] == v) return true;
+		}
+		return false;
+	}
+
 	std::array<Vertex::Label, 3> vs;
 	std::array<HalfEdge::Label, 3> hes;
 	std::array<Triangle::Label, 3> trnbr;
