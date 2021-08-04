@@ -47,7 +47,6 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 		for (auto ss : Universe::sliceSizes) 
 			total2v += ss;
 
-		//int avg2v = total2v / Universe::nSlices;
 		double n31 = Universe::tetras31.size();
 		int n3 = Universe::tetrasAll.size();
 
@@ -78,7 +77,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) total2v += ss;
-			int avg2v = total2v / Universe::nSlices;
+		int avg2v = total2v / Universe::nSlices;
 		
 		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), avg2v);
 
@@ -90,10 +89,13 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 		
 		if (observables3d.size() > 0) {
 			// remove if volume should fluctuate during measurements
+			int vol_switch = Universe::volfix_switch;
 			if (targetVolume > 0) {
+				int cmp;
 				do {
 					attemptMove();
-				} while (Universe::tetrasAll.size() != targetVolume);
+					cmp = vol_switch == 0 ? Universe::tetras31.size() : Universe::tetrasAll.size();
+				} while (cmp != Simulation::targetVolume);
 			}
 
 			prepare();
@@ -181,8 +183,6 @@ int Simulation::attemptMove() {
 		}
 	}
 
-
-
 	//Universe::check();
 
 	return 0;
@@ -245,16 +245,13 @@ bool Simulation::moveAdd() {
 	int vol_switch = Universe::volfix_switch;
 	
 	double edS = exp(1 * k0 - 4 * k3);
-	//double rg = n0/(n0+1.0)*n31/(n31+4.0);
 	double rg = n31 / (n31 + 2.0);
 	double ar = edS*rg;
 	
 	if (vol_switch == 0) {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? 4.0 : -4.0));
 		if (targetVolume > 0) ar *= exp(4 * epsilon * (targetVolume - n31 - 1));
 	}
 	else {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 4.0 : -4.0));
 		if (targetVolume > 0) ar *= exp(8 * epsilon * (targetVolume - n3 - 2));
 	}
 
@@ -277,16 +274,13 @@ bool Simulation::moveDelete() {
 	
 	
 	double edS = exp(-1 * k0 + 4 * k3);
-	//double rg = n0/(n0-1.0)*n31/(n31-4.0);
 	double rg = n31/(n31-2.0);
 	double ar = edS*rg;
 	
 	if (vol_switch == 0) {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n31 < targetVolume ? -4.0 : 4.0));
 		if (targetVolume > 0) ar *= exp(-4 * epsilon * (targetVolume - n31 - 1));
 	}
 	else {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -4.0 : 4.0));
 		if (targetVolume > 0) ar *= exp(-8 * epsilon * (targetVolume - n3 - 2));
 	}
 	
@@ -331,7 +325,6 @@ bool Simulation::moveShift() {
 	
 	
 	if (vol_switch == 1) {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
 		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 	
@@ -361,7 +354,6 @@ bool Simulation::moveShiftD() {
 	
 	
 	if (vol_switch == 1) {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? 1.0 : -1.0));
 		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 	
@@ -393,7 +385,6 @@ bool Simulation::moveShiftI() {
 	
 	
 	if (vol_switch == 1) {
-		//if (targetVolume > 0) ar *= exp(epsilon * (n3 < targetVolume ? -1.0 : 1.0));
 		if (targetVolume > 0) ar *= exp(-epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 
