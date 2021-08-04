@@ -18,23 +18,23 @@ public:
 		}
 
 		assert(dict.find("k0") != dict.end());
+		assert(dict.find("k3") != dict.end());
 		assert(dict.find("genus") != dict.end());
-		assert(dict.find("targetVolume") != dict.end());
-		assert(dict.find("target2Volume") != dict.end());
+		assert(dict.find("targetvolume") != dict.end());
+		assert(dict.find("target2volume") != dict.end());
+		assert(dict.find("volfixswitch") != dict.end());
 		assert(dict.find("seed") != dict.end());
-		assert(dict.find("outputDir") != dict.end());
-		assert(dict.find("fileID") != dict.end());
-		assert(dict.find("sweeps") != dict.end());
+		assert(dict.find("outputdir") != dict.end());
+		assert(dict.find("fileid") != dict.end());
+		assert(dict.find("thermalsweeps") != dict.end());
+		assert(dict.find("measuresweeps") != dict.end());
 		assert(dict.find("ksteps") != dict.end());
+		assert(dict.find("strictness") != dict.end());
 		assert(dict.find("v1") != dict.end());
 		assert(dict.find("v2") != dict.end());
 		assert(dict.find("v3") != dict.end());
-		assert(dict.find("thermalSweeps") != dict.end());
-		assert(dict.find("strictness") != dict.end());
 		assert(dict.find("infile") != dict.end());
 		assert(dict.find("outfile") != dict.end());
-		assert(dict.find("k3") != dict.end());
-		assert(dict.find("volfix_switch") != dict.end());
 	}
 
 	int getInt(std::string key) {
