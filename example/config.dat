@@ -1,12 +1,12 @@
 k0				5.0
-k3				1.712
+k3				1.703
 genus			0
-targetvolume	10000 
-target2volume	0
+targetvolume	3000 
+target2volume	1000
 volfixswitch	0
 seed			1
 outputdir		out
-fileid			5.0-1.712-0-3-10000-1
+fileid			k5.0-T3-V4k-g0-s3
 thermalsweeps	1000
 measuresweeps	1000
 ksteps			1000
@@ -14,5 +14,5 @@ strictness		3
 v1				1
 v2				1
 v3				1
-infile			geometries/geom-0-3.cdt
-outfile 		geometries/conf-5.0-T3-V4k-g0-s3.cdt
+infile			geometries/sample-g0-T3.cdt
+outfile 		geometries/conf-k5.0-T3-V4k-g0-s3.cdt
