@@ -56,7 +56,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 		tune();  // tune k3 one step at each sweep
 
-		if ( i % 500 == 0) 
+		if (i % (thermalSweeps / 10) == 0) 
 			Universe::exportGeometry(OutFile);
 
 		prepare();
@@ -85,7 +85,7 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
 
-		if (sweeps % (i/10 == 0)) 
+		if (i % (sweeps / 10) == 0) 
 			Universe::exportGeometry(OutFile);
 		
 		if (observables3d.size() > 0) {
