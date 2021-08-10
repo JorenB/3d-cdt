@@ -5,6 +5,7 @@
 
 std::default_random_engine Observable::rng(0);  // TODO: seed properly
 std::string Observable::data_dir = "";
+std::vector<bool> Observable::doneL;
 
 void Observable::write() {
     std::string filename = data_dir + "/" + name + "-" + identifier + extension;
@@ -38,49 +39,56 @@ void Observable::clear() {
 }
 
 std::vector<Vertex::Label> Observable::sphere(Vertex::Label origin, int radius) {
-	std::vector<Vertex::Label> done;
     std::vector<Vertex::Label> thisDepth;
     std::vector<Vertex::Label> nextDepth;
 
-    done.push_back(origin);
-    thisDepth.push_back(origin);
 
     std::vector<Vertex::Label> vertexList;
+	std::vector<Vertex::Label> flippedVertices;
+    doneL.at(origin) = true;
+    thisDepth.push_back(origin);
+	flippedVertices.push_back(origin);
 
     for (int currentDepth = 0; currentDepth < radius; currentDepth++) {
         for (auto v : thisDepth) {
             for (auto neighbor : Universe::vertexNeighbors[v]) {
-               if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
-                   nextDepth.push_back(neighbor);
-                   done.push_back(neighbor);
-                   if(currentDepth == radius-1) vertexList.push_back(neighbor);
-               }
-            }
-        }
+				if (!doneL.at(neighbor)) {
+					flippedVertices.push_back(neighbor);
+					nextDepth.push_back(neighbor);
+					doneL.at(neighbor) = true;
+					if(currentDepth == radius-1) vertexList.push_back(neighbor);
+				}
+			}
+		}
         thisDepth = nextDepth;
         nextDepth.clear();
     }
+
+	for (auto v : flippedVertices) {
+		doneL.at(v) = false;
+	}
 
     return vertexList;
 }
 
 std::vector<Vertex::Label> Observable::sphere2d(Vertex::Label origin, int radius) {
-	std::vector<Vertex::Label> done;
     std::vector<Vertex::Label> thisDepth;
     std::vector<Vertex::Label> nextDepth;
 
-    done.push_back(origin);
-    thisDepth.push_back(origin);
-
     std::vector<Vertex::Label> vertexList;
+    std::vector<Vertex::Label> flippedVertices;
+    doneL.at(origin) = true;
+    thisDepth.push_back(origin);
+	flippedVertices.push_back(origin);
 
     for (int currentDepth = 0; currentDepth < radius; currentDepth++) {
         for (auto v : thisDepth) {
             for (auto neighbor : Universe::vertexNeighbors[v]) {
 				if (neighbor->time != origin->time) continue;
-				if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
+				if (!doneL.at(neighbor)) {
+					flippedVertices.push_back(neighbor);
 					nextDepth.push_back(neighbor);
-					done.push_back(neighbor);
+					doneL.at(neighbor) = true;
 					if(currentDepth == radius-1) vertexList.push_back(neighbor);
 				}
 			}
@@ -88,6 +96,10 @@ std::vector<Vertex::Label> Observable::sphere2d(Vertex::Label origin, int radius
         thisDepth = nextDepth;
         nextDepth.clear();
     }
+
+	for (auto v : flippedVertices) {
+		doneL.at(v) = false;
+	}
 
     return vertexList;
 }

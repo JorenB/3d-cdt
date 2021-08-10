@@ -4,16 +4,26 @@
 void Hausdorff2d::process() {
     std::string tmp = "";
 	std::vector<int> profile = {};
-
+	int max_epsilon = 30;
+	profile.resize(max_epsilon, 0);
+	
+	int vmax = 0;
+	for (auto v : Universe::vertices) {
+		if (v > vmax) vmax = v;
+	}
+	doneL.resize(vmax + 1, false);
 
 	if (!average) {
-		printf("single\n");
-		Vertex::Label v;
-		do {
-			v = Universe::verticesAll.pick();
-		} while (Universe::sliceSizes[v->time] != Simulation::target2Volume);
+		for (int i = 1; i <= max_epsilon; i++) {
+			Vertex::Label v;
+			do {	
+				v = Universe::verticesAll.pick();
+			} while (Universe::sliceSizes[v->time] != Simulation::target2Volume);
 
-		profile = distanceList2d(v);
+			auto s1 = sphere2d(v, i);
+
+			profile.at(i-1) = s1.size();
+		}
 	} else if (average) {
 		printf("avg\n");
 		

@@ -34,6 +34,8 @@ protected:
 
 	void write();
 
+	static std::vector<bool> doneL;
+
 	// toolbox
 
 	static std::vector<Vertex::Label> sphere(Vertex::Label origin, int radius);

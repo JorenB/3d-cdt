@@ -69,9 +69,10 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 // ********************** END THERMAL SWEEPS ******************** //
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
+	printf("======\n");
 // ********************** START MEASURE SWEEPS ****************** //
 ////////////////////////////////////////////////////////////////////
-	printf("k0: %g, k3: %g, epsilon: %g", k0, k3, epsilon);
+	printf("k0: %g, k3: %g, epsilon: %g\n", k0, k3, epsilon);
 
 	for (int i = 1; i <= sweeps; i++) {  // number of measurement sweeps
 
