@@ -67,7 +67,6 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 	int n3;
 	infile >> n3;
 	printf("n3: %d\n", n3);
-	//std::vector<HalfEdge::Label> hes;
 	for (int i = 0; i < n3; i++) {
 		auto t = Tetra::create();
 		int tvs[4];
@@ -82,19 +81,17 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 
 		t->setVertices(tvs[0], tvs[1], tvs[2], tvs[3]);
 		if (t->is31()) {
-
 			for (int j = 0; j < 3; j++) {
 				Pool<Vertex>::Label v = tvs[j];
 				v->tetra = t;
 			}
 		}
 		t->setTetras(tts[0], tts[1], tts[2], tts[3]);
-		
+
 		tetrasAll.add(t);
 		if (t->is31()) tetras31.add(t);
 		slabSizes.at(t->vs[1]->time) += 1;
 		if (t->is31()) sliceSizes.at(t->vs[0]->time) += 1;
-		//printf("t: %d, %d %d %d %d\n", t, t->v1, t->v2, t->v3, t->v4);
 	}
 	infile >> line;
 	if (line != n3) return false;
@@ -149,7 +146,7 @@ bool Universe::exportGeometry(std::string geometryFilename) {
 		i++;
 	}
 
-	// TODO: rewrite to incorporate 'tetras' and add 'updateTetraData()'
+	// TODO(JorenB): rewrite to incorporate 'tetras' and add 'updateTetraData()'
 	std::unordered_map<int, int> tetraMap;
 	std::vector<Tetra::Label> intTMap;
 	intTMap.resize(tetrasAll.size());
@@ -187,7 +184,7 @@ bool Universe::exportGeometry(std::string geometryFilename) {
 			out += "\n";
 		}
 	}
-	
+
 	out += std::to_string(tetrasAll.size());
 
     std::ofstream file;
@@ -219,7 +216,7 @@ bool Universe::move26(Tetra::Label t) {  // takes 31 simplex
 	auto v2 = t->vs[2];
 	auto vt = t->vs[3];
 	auto vb = tv->vs[0];
-	
+
 	auto tn01 = Tetra::create();
 	auto tn12 = Tetra::create();
 	auto tn20 = Tetra::create();
@@ -275,7 +272,7 @@ bool Universe::move26(Tetra::Label t) {  // takes 31 simplex
 	slabSizes.at(time) += 2;
 	slabSizes.at((time - 1 + nSlices) % nSlices) += 2;
 	sliceSizes.at(time) += 2;
-	
+
 	tetrasAll.remove(t);
 	tetras31.remove(t);
 	tetrasAll.remove(tv);
@@ -284,7 +281,6 @@ bool Universe::move26(Tetra::Label t) {  // takes 31 simplex
 	Tetra::destroy(tv);
 
 	vn->tetra = tn01;
-	//verticesSix.add(vn);
 
 	v0->tetra = tn01;
 	v1->tetra = tn12;
@@ -300,10 +296,6 @@ bool Universe::move26(Tetra::Label t) {  // takes 31 simplex
 	vt->cnum += 2;
 	vb->cnum += 2;
 
-	//if (verticesSix.contains(v0)) { verticesSix.remove(v0); }
-	//if (verticesSix.contains(v1)) { verticesSix.remove(v1); }
-	//if (verticesSix.contains(v2)) { verticesSix.remove(v2); }
-
 	return true;
 }
 
@@ -312,9 +304,6 @@ bool Universe::move62(Vertex::Label v) {
 	int time = v->time;
 	auto t01 = v->tetra;
 	auto tv01 = t01->tnbr[3];
-
-	//printf("v: %d\n", v);
-	//t01->log();
 
 	int vpos = -1;
 	for (int i = 0; i < 3; i++) {
@@ -364,7 +353,7 @@ bool Universe::move62(Vertex::Label v) {
 	if ((to01 == to12) || (to01 == to20) || (to12 == to20)) return false;
 	if ((tvo01 == tvo12) || (tvo01 == tvo20) || (tvo12 == tvo20)) return false;
 	*/
-	
+
 	if (strictness == 0) {
 	} else if (strictness == 1) {
 		// disallow tadpole insertions
@@ -377,7 +366,6 @@ bool Universe::move62(Vertex::Label v) {
 		if (v1->scnum < 4) return false;
 		if (v2->scnum < 4) return false;
 	}
-	
 
 	auto tn = Tetra::create();
 	auto tvn = Tetra::create();
@@ -436,19 +424,13 @@ bool Universe::move62(Vertex::Label v) {
 	Tetra::destroy(tv01);
 	Tetra::destroy(tv12);
 	Tetra::destroy(tv20);
-	
 
 	verticesAll.remove(v);
-	//verticesSix.remove(v);
 	Vertex::destroy(v);
 
 	slabSizes.at(time) -= 2;
 	slabSizes.at((time - 1 + nSlices) % nSlices) -= 2;
 	sliceSizes.at(time) -= 2;
-
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
 
 	return true;
 }
@@ -463,7 +445,7 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 		if (t012->vs[i] == v1) {
 			v2 = t012->vs[(i + 1) % 3];
 			v0 = t012->vs[(i + 2) % 3];
-			break;	
+			break;
 		}
 	}
 
@@ -477,7 +459,6 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 		// disallow self-energy insertions in dual graph
 		if (v0->scnum == 3) { return false; }
 		if (v2->scnum == 3) { return false; }
-
 	}
 	if (strictness >= 3) {
 		if (v1->neighborsVertex(v3)) return false;
@@ -503,10 +484,6 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 
 	if (tva01 == tv230) return false;
 	if (tva23 == tv012) return false;
-
-	//for (auto tt : tetrasAll) {
-	//	if (tt->hasVertex(v1) && tt->hasVertex(v3)) return false;
-	//}
 
 	auto t012vo2 = t012->getVertexOpposite(v2);
 	auto t230vo0 = t230->getVertexOpposite(v0);
@@ -549,11 +526,6 @@ bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	v1->cnum += 2;
 	v2->cnum -= 2;
 	v3->cnum += 2;
-
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
-	updateVertexBags(v3);
 
 	v0->tetra = tn013;
 	v2->tetra = tn123;
@@ -638,7 +610,7 @@ bool Universe::move23u(Tetra::Label t31, Tetra::Label t22) {
 
 	v0->cnum += 2;
 	v1->cnum += 2;
-	
+
 	tetrasAll.remove(t31);
 	tetras31.remove(t31);
 	tetrasAll.remove(t22);
@@ -650,18 +622,11 @@ bool Universe::move23u(Tetra::Label t31, Tetra::Label t22) {
 	tn31->vs[1]->tetra = tn31;
 	tn31->vs[2]->tetra = tn31;
 
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
-	updateVertexBags(v3);
-	updateVertexBags(v4);
-	
 	return true;
 }
 
 bool Universe::move32u(Tetra::Label t31, Tetra::Label t22l, Tetra::Label t22r) {
 	Vertex::Label v0, v1, v2, v3, v4;
-	
 	v1 = t31->vs[3];
 	v3 = t22l->getVertexOppositeTetra(t31);
 	v4 = t31->getVertexOppositeTetra(t22l);
@@ -728,12 +693,6 @@ bool Universe::move32u(Tetra::Label t31, Tetra::Label t22l, Tetra::Label t22r) {
 	tn31->vs[1]->tetra = tn31;
 	tn31->vs[2]->tetra = tn31;
 
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
-	updateVertexBags(v3);
-	updateVertexBags(v4);
-	
 	return true;
 }
 
@@ -769,10 +728,6 @@ bool Universe::move23d(Tetra::Label t13, Tetra::Label t22) {
 	if (ta134->hasVertex(v0)) return false;
 
 	if (v0->neighborsVertex(v1)) return false;
-	//for (auto tt : tetrasAll) {  // CHANGE! INEFFICIENT TMP SOLUTION
-	//	if (tt->hasVertex(v0) && tt->hasVertex(v1)) return false;
-	//}
-
 
 	auto tn13 = Tetra::create();
 	auto tn22l = Tetra::create();
@@ -803,25 +758,19 @@ bool Universe::move23d(Tetra::Label t13, Tetra::Label t22) {
 
 	v0->cnum += 2;
 	v1->cnum += 2;
-	
+
 	tetrasAll.remove(t13);
 	tetrasAll.remove(t22);
 
 	Tetra::destroy(t13);
 	Tetra::destroy(t22);
 
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
-	updateVertexBags(v3);
-	updateVertexBags(v4);
-	
 	return true;
 }
 
 bool Universe::move32d(Tetra::Label t13, Tetra::Label t22l, Tetra::Label t22r) {
 	Vertex::Label v0, v1, v2, v3, v4;
-	
+
 	v1 = t13->vs[0];
 	v3 = t22l->getVertexOppositeTetra(t13);
 	v4 = t13->getVertexOppositeTetra(t22l);
@@ -883,18 +832,7 @@ bool Universe::move32d(Tetra::Label t13, Tetra::Label t22l, Tetra::Label t22r) {
 	int time = tn13->vs[3]->time;
 	slabSizes.at(time) -= 1;
 
-	updateVertexBags(v0);
-	updateVertexBags(v1);
-	updateVertexBags(v2);
-	updateVertexBags(v3);
-	updateVertexBags(v4);
-
 	return true;
-}
-
-void Universe::updateVertexBags(Vertex::Label v) {
-	//if (verticesSix.contains(v) && (v->cnum != 6 || v->scnum != 3)) verticesSix.remove(v);
-	//if (!verticesSix.contains(v) && v->cnum == 6 && v->scnum == 3) verticesSix.add(v);
 }
 
 void Universe::updateVertexData() {
@@ -911,7 +849,6 @@ void Universe::updateVertexData() {
 	for (auto v : verticesAll) {
 		std::vector<Vertex::Label> nbr = {};
 		auto t = v->tetra;
-		//std::vector<Tetra::Label> ts = {t};
 		std::vector<Tetra::Label> current = {t};
 		std::vector<Tetra::Label> next = {};
 		std::vector<Tetra::Label> done = {};
@@ -929,7 +866,7 @@ void Universe::updateVertexData() {
 			current = next;
 			next.clear();
 		} while (current.size() > 0);
-		
+
 		for (auto td : done) {
 			for (auto vd : td->vs) {
 				if (std::find(nbr.begin(), nbr.end(), vd) == nbr.end() && vd != v) nbr.push_back(vd);
@@ -949,7 +886,6 @@ void Universe::updateHalfEdgeData() {
 	halfEdges.clear();
 
 	for (auto t : tetras31) {
-		//t->log();
 		std::array<HalfEdge::Label, 3> these;
 		for (int i = 0; i < 3; i++) {
 			auto h = HalfEdge::create();
@@ -976,9 +912,6 @@ void Universe::updateHalfEdgeData() {
 			auto tc = t->getTetraOpposite(v);
 			Tetra::Label tn;
 			v = vt;
-			//t->log();
-			//tc->log();
-			//printf("======\n");
 			while (tc->is22()) {
 				tn = tc->getTetraOpposite(v);
 
@@ -988,9 +921,6 @@ void Universe::updateHalfEdgeData() {
 					if (vo == tc->vs[2]) assert(v == tc->vs[3]);
 					if (vo == tc->vs[3]) assert(v == tc->vs[2]);
 				}
-				//tc->log();
-				//tn->log();
-				//printf("vo: %d, v: %d\n", vo, v);
 				tc = tn;
 			}
 			assert(tc->is31());
@@ -999,19 +929,8 @@ void Universe::updateHalfEdgeData() {
 			auto hthat = tc->getHalfEdgeTo(t->vs[(i + 1) % 3]);
 			hthis->adj = hthat;
 			hthat->adj = hthis;
-
-			//printf("==========================\n");
 		}
 	}
-
-	//for (auto h : halfEdges) {
-	//	printf("h: %d, vi: %d, vf: %d, n: %d, p: %d, a: %d, t: %d\n", h, h->vs[0], h->vs[1], h->next, h->prev, h->adj, h->tetra);
-	//}
-
-	//for (auto h : halfEdges) {
-	//	if (h->vs[0]->time != 1) continue;
-	//	printf("%d %d %d\n", h->next, h->prev, h->adj);
-	//}
 }
 
 void Universe::updateTriangleData() {
@@ -1032,8 +951,6 @@ void Universe::updateTriangleData() {
 		t->hes[2]->triangle = tr;
 
 		triangles.push_back(tr);
-		
-		//printf("tr: %d, v0: %d, v1: %d, v2: %d, h0: %d, h1: %d, h2: %d\n", tr, tr->vs[0], tr->vs[1], tr->vs[2], tr->hes[0], tr->hes[1], tr->hes[2]);
 	}
 	triangleNeighbors.resize(triangles.size());
 
@@ -1041,7 +958,6 @@ void Universe::updateTriangleData() {
 		tr->setTriangleNeighbors(tr->hes[0]->getAdjacent()->triangle, tr->hes[1]->getAdjacent()->triangle, tr->hes[2]->getAdjacent()->triangle);
 
 		triangleNeighbors.at(tr) = tr->trnbr;
-
 	}
 }
 
@@ -1058,9 +974,7 @@ void Universe::check() {
 
 	assert(Universe::tetrasAll.size() == Tetra::size());
 	for (auto t : Universe::tetrasAll) {
-		//printf("count: %d, t: %d\n", count, (int) t);
 		count++;
-		//t->log();
 
 		for (int i = 0; i < 4; i++) {
 			assert(verticesAll.contains(t->vs[i]));
@@ -1089,60 +1003,35 @@ void Universe::check() {
 
 			if (t->is31()) {
 				if (i < 3) assert(t->tnbr[i]->is31() || t->tnbr[i]->is22());
-				else assert(t->tnbr[i]->is13());
+				else
+                    assert(t->tnbr[i]->is13());
 
 			} else if (t->is13()) {
 				if (i == 0) assert(t->tnbr[i]->is31());
-				else assert(t->tnbr[i]->is13() || t->tnbr[i]->is22());
+				else
+                    assert(t->tnbr[i]->is13() || t->tnbr[i]->is22());
 			}
-
-			// tadpole/self-energy in 2d dual graph
-			/*if (t->is31() || t->is13()) {
-				for (int i = 0; i < 3; i++) {
-					for (int j = 1; j < 4; j++) {
-						if (t->tnbr[i] == t->tnbr[(i + j) % 4]) t->log();
-						assert(t->tnbr[i] != t->tnbr[(i + j) % 4]);
-					}
-				}
-			}*/
-
 		}
 
 		for (int i = 0; i < 4; i++) {
 			assert(t->getTetraOpposite(t->vs[i]) == t->tnbr[i]);
 			assert(t->tnbr[i]->getTetraOpposite(t->getVertexOpposite(t->vs[i])) == t);
 		}
-
 	}
 
 	for (auto v : verticesAll) {
 		int cnum = 0;
 		assert(Universe::tetrasAll.contains(v->tetra));
-		
-		/*for (auto tt : Universe::tetrasAll) {
-			if (tt->hasVertex(v)) cnum++;
-
-			if (tt->hasVertex(v)) {
-				for (auto vn : tt->vs) {
-					if (vn == v) continue;
-					
-					assert(v->neighborsVertex(vn));
-					assert(vn->neighborsVertex(v));
-				}
-			}
-		}
-		assert(cnum == v->cnum);*/
 
 		// tadpole restriction
 		if (strictness == 1) {
 			assert(v->scnum >= 2);
 		}
-		
+
 		if (strictness == 2) {
 			// self-energy restriction
 			assert(v->scnum >= 3);
 		}
-
 	}
 
 	for (auto tr : triangles) {
@@ -1155,13 +1044,4 @@ void Universe::check() {
 		}
 	}
 	printf("====================================================\n");
-}
-
-// export geometry as Mathematica graph (very much redundant information)
-void Universe::exportGraph() {
-
-	printf("\n");
-}
-
-void Universe::exportSliceGraph(int time) {
 }

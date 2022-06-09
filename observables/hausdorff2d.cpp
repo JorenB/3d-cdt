@@ -6,7 +6,7 @@ void Hausdorff2d::process() {
 	std::vector<int> profile = {};
 	int max_epsilon = 30;
 	profile.resize(max_epsilon, 0);
-	
+
 	int vmax = 0;
 	for (auto v : Universe::vertices) {
 		if (v > vmax) vmax = v;
@@ -16,7 +16,7 @@ void Hausdorff2d::process() {
 	if (!average) {
 		for (int i = 1; i <= max_epsilon; i++) {
 			Vertex::Label v;
-			do {	
+			do {
 				v = Universe::verticesAll.pick();
 			} while (Universe::sliceSizes[v->time] != Simulation::target2Volume);
 
@@ -26,25 +26,21 @@ void Hausdorff2d::process() {
 		}
 	} else if (average) {
 		printf("avg\n");
-		
+
 		int counter = 0;
 		for (auto v : Universe::verticesAll) {
 			if (Universe::sliceSizes[v->time] != Simulation::target2Volume) continue;
 			counter++;
-			//printf("c: %d\n", counter);
 
 			auto singleProfile = distanceList2d(v);
 			if (singleProfile.size() > profile.size()) profile.resize(singleProfile.size(), 0);
-			
+
 			std::string tmp = "";
 			for (int i = 0; i < singleProfile.size(); i++) {
-				//printf("%d ", singleProfile.at(i));
 				profile.at(i) += singleProfile.at(i);
 				tmp += std::to_string(profile.at(i) / counter);
 				tmp += " ";
 			}
-
-			//printf("\n%s\n", tmp.c_str());
 		}
 
 		for (int i = 0; i < profile.size(); i++) {
@@ -57,11 +53,12 @@ void Hausdorff2d::process() {
 		tmp += " ";
 	}
 	tmp.pop_back();
-	
-    output = tmp; 
+
+    output = tmp;
 }
 
 std::vector<int> Hausdorff2d::distanceList2d(Vertex::Label origin) {
+    // TODO(JorenB): optimize BFS
 	std::vector<int> dsts;
 	std::vector<Vertex::Label> done;
     std::vector<Vertex::Label> thisDepth;
@@ -69,8 +66,6 @@ std::vector<int> Hausdorff2d::distanceList2d(Vertex::Label origin) {
 
     done.push_back(origin);
     thisDepth.push_back(origin);
-
-    //std::vector<Vertex::Label> vertexList;
 
 	int currentDepth = 0;
 	do {
@@ -80,7 +75,6 @@ std::vector<int> Hausdorff2d::distanceList2d(Vertex::Label origin) {
 				if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
 					nextDepth.push_back(neighbor);
 					done.push_back(neighbor);
-					//if(currentDepth == radius-1) vertexList.push_back(neighbor);
 				}
 			}
         }

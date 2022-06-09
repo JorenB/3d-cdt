@@ -1,11 +1,11 @@
 // Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #pragma once
 
+#include <iostream>
+#include <typeinfo>
 #include "pool.hpp"
 #include "vertex.hpp"
 #include "halfedge.hpp"
-#include <iostream>
-#include <typeinfo>
 
 class Tetra : public Pool<Tetra> {
 public:
@@ -16,8 +16,7 @@ public:
 	Type type;
 
 	inline const char* ToString(Tetra::Type t) {
-		switch (t)
-		{
+		switch (t) {
 			case Tetra::Type::THREEONE: return "31";
 			case Tetra::Type::ONETHREE: return "13";
 			case Tetra::Type::TWOTWO: return "22";
@@ -46,7 +45,7 @@ public:
 
 		return false;
 	}
-	
+
 	HalfEdge::Label getHalfEdgeTo(Vertex::Label v) {
 		for (int i = 0; i < 3; i++) {
 			if (hes[i]->vs[1] == v) return hes[i];
@@ -93,7 +92,7 @@ public:
 		std::array<Vertex::Label, 3> face;
 		int i = 0;
 		for (auto tv : vs) {
-			if (tv != v) { 
+			if (tv != v) {
 				face[i] = tv;
 				i++;
 			}
@@ -124,7 +123,7 @@ public:
 
 	void log() {
 		Pool<Tetra>::Label t = *this;
-		printf("t: %d - %s\n", (int) t, ToString(type));
+		printf("t: %d - %s\n", static_cast<int>(t), ToString(type));
 		printf("\t");
 		for (int i = 0; i < 4; i++) printf("v%d: %d ", i, vs[i]);
 		printf("\n\t");
@@ -132,9 +131,8 @@ public:
 		printf("\n");
 	}
 
-//private:
+    // TODO(JorenB): make private
 	std::array<Pool<Tetra>::Label, 4> tnbr;
 	std::array<Pool<Vertex>::Label, 4> vs;
 	std::array<Pool<HalfEdge>::Label, 3> hes = {-1, -1, -1};
-
 };

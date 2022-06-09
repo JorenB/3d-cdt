@@ -25,8 +25,8 @@ int main(int argc, const char * argv[]) {
 	int seed = cfr.getInt("seed");
 	std::string outputDir = cfr.getString("outputdir");
 	std::string fID = cfr.getString("fileid");
-	int thermalSweeps = cfr.getInt("thermalsweeps"); // Number of thermalization sweeps
-	int sweeps = cfr.getInt("measuresweeps");  // Number of measurement sweeps 
+	int thermalSweeps = cfr.getInt("thermalsweeps");  // Number of thermalization sweeps
+	int sweeps = cfr.getInt("measuresweeps");  // Number of measurement sweeps
 	int kSteps = cfr.getInt("ksteps");
 	int strictness = cfr.getInt("strictness");
 	int v1 = cfr.getInt("v1");
@@ -34,7 +34,7 @@ int main(int argc, const char * argv[]) {
 	int v3 = cfr.getInt("v3");
 	std::string inFile = cfr.getString("infile");
 	std::string outFile = cfr.getString("outfile");
-	
+
 	printf("fID: %s\n", fID.c_str());
 	printf("seed: %d\n", seed);
 	printf("strictness: %d\n", strictness);
@@ -50,13 +50,13 @@ int main(int argc, const char * argv[]) {
 	VolumeProfile vp3(fID);
 	Simulation::addObservable3d(vp3);
 
-	Simulation::start(k0, k3_s, sweeps, thermalSweeps, kSteps, targetVolume, target2Volume, seed, outFile,v1,v2,v3);
-	
+	Simulation::start(k0, k3_s, sweeps, thermalSweeps, kSteps, targetVolume, target2Volume, seed, outFile, v1, v2, v3);
+
 	printf("\n\n####################\n");
 	printf("* * * Finished * * *\n");
 	printf("####################\n\n");
 
 	printf("t31: %d\n", Universe::tetras31.size());
-		
+
 	return 0;
 }

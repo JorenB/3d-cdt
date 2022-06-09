@@ -40,7 +40,6 @@ protected:
 	static const unsigned pool_size = -1;						// Has to be overshaded in child class
 
 public:
-
 	Pool(const Pool&) = delete;									// Make poolable objects non-copyable
 	Pool& operator=(const Pool&) = delete;
 	Pool(Pool&&) = delete;										// Make poolable objects non-movable
@@ -59,25 +58,23 @@ public:
 		int i;													// const?
 	public:
 		Label() = default;
-		Label(int i) : i{i}		{ }
-		T& operator*() const	{ return T::at(i); }
-		T* operator->() const	{ return &T::at(i); } 
-		// operator T&() const		{ return T::at(i); }			// Conversion to T&
-		operator int&()			{ return i; }					// Basically a getter/setter
-		operator int() const	{ return i; }					// Basically a getter
+		Label(int i) : i {i} { }
+		T& operator*() const { return T::at(i); }
+		T* operator->() const { return &T::at(i); }
+		operator int&() { return i; }					// Basically a getter/setter
+		operator int() const { return i; }					// Basically a getter
 	};
 
-	// Label label() const { return Label{next}; }
 	operator Label() const { return Label{next}; }
 
-	static T* create_pool(/*int capacity*/) {
+	static T* create_pool() {
 		static_assert(T::pool_size > 0, "Pool size not defined in child class");
 
 		capacity	= T::pool_size;
 		elements	= new T[capacity];
 
 		for(auto i = 0; i < capacity; i++)
-			elements[i].next	= ~ (i + 1);					// Using not (~) solve the negative zero problem. ~x == -(x + 1)
+			elements[i].next = ~(i + 1);					// Using not (~) solve the negative zero problem. ~x == -(x + 1)
 
 		return elements;
 	}
@@ -85,14 +82,14 @@ public:
 	static Label create() {
 		auto tmp = first;
 		assert(elements[tmp].next < 0);							// Check if element is really free
-		first = ~ elements[tmp].next;
+		first = ~elements[tmp].next;
 		elements[tmp].next = tmp;
 		total++;
 		return tmp;												// Implicit 'Label(int)'' constructor
 	}
 
 	static void destroy(Label i) {
-		elements[i].next = ~ first;  						// 'deactivate' object at position i
+		elements[i].next = ~first;  						// 'deactivate' object at position i
 		first = i;	  											// Reset index of the first inactive object. Implicit Label::operator int&().
 		total--;
 	}
@@ -103,7 +100,6 @@ public:
 	static int pool_capacity() noexcept { return capacity; }
 
 //// Checks if the object is indeed in the right position in array 'elements' ////
-//	bool is_in_pool()
 	void check_in_pool() {
 		assert(this->next >= 0);
 		assert(this->next < capacity);
@@ -125,23 +121,23 @@ public:
 	public:
 		Iterator(int i = 0, int cnt = 0) : i{i}, cnt{cnt} {}
 
-		T& operator*() { return elements[i]; } 
+		T& operator*() { return elements[i]; }
 		bool operator==(const Iterator& b) const { return cnt == b.cnt; }
 		bool operator!=(const Iterator& b) const { return !operator==(b); }
 
-		Iterator& operator++() { 
+		Iterator& operator++() {
 			if(cnt < total - 1)
-				while(elements[++i].next < 0);
-			cnt++;
+                while (elements[++i].next < 0) { }
+            cnt++;
 
-			return *this; 
+			return *this;
 		}
 	};
 
 	struct Items {
 		auto begin() {
 			int i;
-			for(i = 0; elements[i].next < 0; i++);
+			for(i = 0; elements[i].next < 0; i++) { }
 			return Iterator{i, 0};
 		}
 		auto end() {

@@ -3,10 +3,10 @@
 
 void CNum::process() {
 	std::string tmp = "";
-	
+
 	std::array<int, 750> histogram;
 	std::fill(histogram.begin(), histogram.end(), 0);
-	
+
 	for (auto v : Universe::vertices) {
 		if (Universe::sliceSizes[v->time] != Simulation::target2Volume) continue;
 		if (v->scnum > histogram.size() - 1) {
@@ -21,6 +21,6 @@ void CNum::process() {
 		tmp += " ";
 	}
 	tmp.pop_back();
-	
+
 	output = tmp;
 }

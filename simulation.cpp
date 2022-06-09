@@ -1,7 +1,6 @@
 // Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #include "simulation.hpp"
 #include "observable.hpp"
-#include <vector>
 
 double Simulation::k0 = 0;
 double Simulation::k3 = 0;
@@ -17,21 +16,19 @@ std::vector<Observable*> Simulation::observables2d;
 
 std::array<int, 3> Simulation::moveFreqs = {0, 0, 0};
 
-void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile, int v1, int v2, int v3) {
-
+void Simulation::start(double k0_, double k3_, int sweeps, int thermalSweeps, int ksteps, int targetVolume_, int target2Volume_, int seed, std::string OutFile, int v1, int v2, int v3) {
 	Simulation::moveFreqs = {v1, v2, v3};
 
 	targetVolume = targetVolume_;
-	target2Volume = target2Volume_;		
+	target2Volume = target2Volume_;
 	k3 = k3_;
 	k0 = k0_;
-	
-	for (auto o : observables3d) 
+
+	for (auto o : observables3d)
 		o->clear();
-	
-	for (auto o : observables2d) 
+
+	for (auto o : observables2d)
 		o->clear();
-	
 
 	rng.seed(seed);
 
@@ -44,23 +41,23 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 
 	for (int i = 1; i <= thermalSweeps; i++) {  // thermalization phase
 		int total2v = 0;
-		for (auto ss : Universe::sliceSizes) 
+		for (auto ss : Universe::sliceSizes)
 			total2v += ss;
 
 		double n31 = Universe::tetras31.size();
 		int n3 = Universe::tetrasAll.size();
 
-		printf("Thermal: i: %d\t  Tetra::size: %d tetras31:  %g k3: %g \n",i, n3, n31, k3);
+		printf("Thermal: i: %d\t  Tetra::size: %d tetras31:  %g k3: %g \n", i, n3, n31, k3);
 
-		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
+		performSweep(ksteps * 1000);
 
-		tune();  // tune k3 one step at each sweep
+		tune();
 
-		if (i % (thermalSweeps / 10) == 0) 
+		if (i % (thermalSweeps / 10) == 0)
 			Universe::exportGeometry(OutFile);
 
 		prepare();
-		for (auto o : observables3d) 
+		for (auto o : observables3d)
 			o->measure();
 	}
 
@@ -75,19 +72,18 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 	printf("k0: %g, k3: %g, epsilon: %g\n", k0, k3, epsilon);
 
 	for (int i = 1; i <= sweeps; i++) {  // number of measurement sweeps
-
 		int total2v = 0;
 		for (auto ss : Universe::sliceSizes) total2v += ss;
 		int avg2v = total2v / Universe::nSlices;
-		
-		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d avgslice: %d\n",i, targetVolume, target2Volume, Tetra::size(), avg2v);
+
+		printf("SWEEPS: i: %d\t Target: %d\t Target2d: %d\t CURRENT: %d avgslice: %d\n", i, targetVolume, target2Volume, Tetra::size(), avg2v);
 
 
-		performSweep(ksteps * 1000); //ksteps is for "how many thousand steps to perform" in a given sweep
+		performSweep(ksteps * 1000);
 
-		if (i % (sweeps / 10) == 0) 
+		if (i % (sweeps / 10) == 0)
 			Universe::exportGeometry(OutFile);
-		
+
 		if (observables3d.size() > 0) {
 			// remove if volume should fluctuate during measurements
 			int vol_switch = Universe::volfix_switch;
@@ -100,11 +96,11 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 			}
 
 			prepare();
-			for (auto o : observables3d) 
+			for (auto o : observables3d)
 				o->measure();
 		}
 
-		if (target2Volume > 0) { 
+		if (target2Volume > 0) {
 			bool hit = false;
 			do {
 				attemptMove();
@@ -126,14 +122,13 @@ void Simulation::start(double k0_, double k3_,int sweeps,  int thermalSweeps,int
 //////////////////////////////////////////////////////////////////
 // ********************** END MEASURE SWEEPS ****************** //
 //////////////////////////////////////////////////////////////////
-
 }
 
 
 int Simulation::attemptMove() {
 	std::array<int, 3> cumFreqs = {moveFreqs[0], moveFreqs[1]+moveFreqs[0], moveFreqs[2]+moveFreqs[1]+moveFreqs[0]};
 	int freqTotal = 0;
-	
+
 	freqTotal = moveFreqs[0] + moveFreqs[1] + moveFreqs[2];
 
 	std::uniform_int_distribution<> moveGen(0, freqTotal-1);
@@ -143,48 +138,41 @@ int Simulation::attemptMove() {
 
 	if (move < cumFreqs[0]) {
 		if (binGen(rng) == 0) {
-			//printf("a\n");
 			if (moveAdd()) return 1;
-			else return -1;
+			else
+                return -1;
 		} else {
-			//printf("d\n");
 			if (moveDelete()) return 2;
-			else return -2;
+			else
+                return -2;
 		}
 	} else if (cumFreqs[0] <= move && move < cumFreqs[1]) {
-		//printf("f\n");
 		if (moveFlip())  return 3;
-		else return -3;
-		
+		else
+            return -3;
 	} else if (cumFreqs[1] <= move) {
 		if (binGen(rng) == 0) {
-			//printf("shiftf\n");
-			if (binGen(rng) == 0) { 
-				//printf("u\n"); 
+			if (binGen(rng) == 0) {
 				if (moveShift()) return 4;
-				else return -4; 
-			}
-			else { 
-			  //printf("d\n"); 
-				if (moveShiftD()) return 4; 
-				else return -4;
+				else
+                    return -4;
+			} else {
+				if (moveShiftD()) return 4;
+				else
+                    return -4;
 			}
 		} else {
-			//printf("shiftb\n");
-			if (binGen(rng) == 0) { 
-				//printf("u\n"); 
-				if (moveShiftI()) return 5; 
-				else return -5;
-			}
-			else { 
-				//printf("d\n"); 
-				if (moveShiftID()) return 5; 
-				else return -5;
+			if (binGen(rng) == 0) {
+				if (moveShiftI()) return 5;
+				else
+                    return -5;
+			} else {
+				if (moveShiftID()) return 5;
+				else
+                    return -5;
 			}
 		}
 	}
-
-	//Universe::check();
 
 	return 0;
 }
@@ -193,16 +181,13 @@ std::vector<int> Simulation::performSweep(int n) {
 	std::vector<int> moves(6, 0);
 	std::vector<int> failed_moves(6, 0);
 	for (int i = 0; i < n; i++) {
-		//printf("mov%d \n", i);
-		int move_num = attemptMove(); 
+		int move_num = attemptMove();
 		int move = abs(move_num);
 		moves[move]++;
 		if (move_num < 0)
 			failed_moves[move]++;
-
-		//Universe::check();
 	}
-		
+
 	int m1 = moves[1] + moves[2];
 	int m2 = moves[3];
 	int m3 = moves[4] + moves[5];
@@ -211,30 +196,26 @@ std::vector<int> Simulation::performSweep(int n) {
 	int f2 = failed_moves[3];
 	int f3 = failed_moves[4] + failed_moves[5];
 
-
-//	printf("%d\t%d\t%d\t\n", m1, m2, m3);
-//	printf("%d\t%d\t%d\t\n", f1, f2, f3);
-	
 	if (m1 == f1)
 		m1++,
 		m1++,
 		f1++;
-		
+
 	if (m2 == f2)
 		m2++,
 		m2++,
 		f2++;
-		
+
 	if (m3 == f3)
 		m3++,
 		m3++,
 		f3++;
-		
-	double r1 = double(m1)/double(f1);
-	double r2 = double(m2)/double(f2);
-	double r3 = double(m3)/double(f3);
-	
-	printf("%g\t%g\t%g\t\n", r1,r2,r3 );
+
+    double r1 = static_cast<double>(m1)/static_cast<double>(f1);
+    double r2 = static_cast<double>(m2)/static_cast<double>(f2);
+    double r3 = static_cast<double>(m3)/static_cast<double>(f3);
+
+	printf("%g\t%g\t%g\t\n", r1, r2, r3);
 
 	return moves;
 }
@@ -242,21 +223,20 @@ std::vector<int> Simulation::performSweep(int n) {
 bool Simulation::moveAdd() {
 	double n31 = Universe::tetras31.size();
 	int n3 = Universe::tetrasAll.size();
-	
+
 	int vol_switch = Universe::volfix_switch;
-	
+
 	double edS = exp(1 * k0 - 4 * k3);
 	double rg = n31 / (n31 + 2.0);
 	double ar = edS*rg;
-	
+
 	if (vol_switch == 0) {
 		if (targetVolume > 0) ar *= exp(4 * epsilon * (targetVolume - n31 - 1));
-	}
-	else {
+	} else {
 		if (targetVolume > 0) ar *= exp(8 * epsilon * (targetVolume - n3 - 2));
 	}
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -272,22 +252,18 @@ bool Simulation::moveDelete() {
 	double n31 = Universe::tetras31.size();
 	int n3 = Universe::tetrasAll.size();
 	int vol_switch = Universe::volfix_switch;
-	
-	
+
 	double edS = exp(-1 * k0 + 4 * k3);
 	double rg = n31/(n31-2.0);
 	double ar = edS*rg;
-	
+
 	if (vol_switch == 0) {
 		if (targetVolume > 0) ar *= exp(-4 * epsilon * (targetVolume - n31 - 1));
-	}
-	else {
+	} else {
 		if (targetVolume > 0) ar *= exp(-8 * epsilon * (targetVolume - n3 - 2));
 	}
-	
-	
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -297,7 +273,7 @@ bool Simulation::moveDelete() {
 	Vertex::Label v = Universe::verticesAll.pick();
 	if (v->cnum != 6) return false;
 	if (v->scnum != 3) return false;
-	
+
 	Universe::move62(v);
 
 	return true;
@@ -323,14 +299,12 @@ bool Simulation::moveShift() {
 	int n3 = Universe::tetrasAll.size();
 	double n31 = Universe::tetras31.size();
 	int vol_switch = Universe::volfix_switch;
-	
-	
+
 	if (vol_switch == 1) {
 		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
-	
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -352,14 +326,12 @@ bool Simulation::moveShiftD() {
 	int n3 = Universe::tetrasAll.size();
 	double n31 = Universe::tetras31.size();
 	int vol_switch = Universe::volfix_switch;
-	
-	
+
 	if (vol_switch == 1) {
 		if (targetVolume > 0) ar *= exp(epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
-	
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -381,15 +353,14 @@ bool Simulation::moveShiftI() {
 	double ar = edS*rg;
 	int n3 = Universe::tetrasAll.size();
 	double n31 = Universe::tetras31.size();
-	
+
 	int vol_switch = Universe::volfix_switch;
-	
-	
+
 	if (vol_switch == 1) {
 		if (targetVolume > 0) ar *= exp(-epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -421,13 +392,12 @@ bool Simulation::moveShiftID() {
 	int n3 = Universe::tetrasAll.size();
 	double n31 = Universe::tetras31.size();
 	int vol_switch = Universe::volfix_switch;
-	
-	
+
 	if (vol_switch == 1) {
 		if (targetVolume > 0) ar *= exp(-epsilon * (2 * targetVolume - 2 * n3 - 1));
 	}
 
-	if (ar < 1.0) { 
+	if (ar < 1.0) {
 		std::uniform_real_distribution<> uniform(0.0, 1.0);
 		double r = uniform(rng);
 		if (r > ar) return false;
@@ -455,17 +425,16 @@ bool Simulation::moveShiftID() {
 
 void Simulation::prepare() {
 	Universe::updateGeometry();
-	//Universe::check();
 }
 
 void Simulation::tune() {
 	double delta_k3 = 0.000001;
 	double ratio = 100;
 
-	int border_far = targetVolume*0.5; 
+	int border_far = targetVolume*0.5;
 	int border_close = targetVolume*0.05;
-	int border_vclose = targetVolume*0.002; 
-	int border_vvclose = targetVolume*0.0001; 
+	int border_vclose = targetVolume*0.002;
+	int border_vvclose = targetVolume*0.0001;
 
 	int vol_switch = Universe::volfix_switch;
 
@@ -473,16 +442,15 @@ void Simulation::tune() {
 
 	if (vol_switch == 0) {
 		fixvolume = Universe::tetras31.size();
-	}
-	else {
+	} else {
 		fixvolume = Universe::tetrasAll.size();
-	}	
+	}
 
-	if ((targetVolume - fixvolume) > border_far) 
+	if ((targetVolume - fixvolume) > border_far)
 		k3 -= delta_k3*ratio*1000;
-	else if ((targetVolume - fixvolume) < -border_far) 
+	else if ((targetVolume - fixvolume) < -border_far)
 		k3 += delta_k3*ratio*1000;
-	else if ((targetVolume - fixvolume) > border_close) 
+	else if ((targetVolume - fixvolume) > border_close)
 		k3 -= delta_k3*1000;
 	else if ((targetVolume - fixvolume) < -border_close)
 		k3 += delta_k3*1000;

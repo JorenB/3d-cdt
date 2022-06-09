@@ -17,7 +17,7 @@ public:
 		assert(v0->time == v2->time);
 		time = v0->time;
 	}
-		
+
 	void setHalfEdges(HalfEdge::Label h0, HalfEdge::Label h1, HalfEdge::Label h2) {
 		hes = {h0, h1, h2};
 	}
@@ -38,5 +38,4 @@ public:
 	std::array<Triangle::Label, 3> trnbr;
 
 private:
-
 };

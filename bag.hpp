@@ -80,6 +80,6 @@ public:
 
 	   //// Iterator for objects stored in a Bag ////
 
-	   auto begin()	{ return &elements[0]; }
+	   auto begin() { return &elements[0]; }
 	   auto end()		{ return &elements[size_]; }
 };

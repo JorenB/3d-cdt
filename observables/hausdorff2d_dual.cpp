@@ -3,7 +3,7 @@
 
 void Hausdorff2dDual::process() {
     std::string tmp = "";
-	
+
 	std::uniform_int_distribution<> triangleGen(0, Universe::triangles.size() - 1);
 	Triangle::Label tr;
 	do {
@@ -12,14 +12,14 @@ void Hausdorff2dDual::process() {
 //	} while (tr->time != 1);
 
 	auto dsts = distanceList2dDual(tr);
-	
+
 	for (auto d : dsts) {
 		tmp += std::to_string(d);
 		tmp += " ";
 	}
 	tmp.pop_back();
 
-    output = tmp; 
+    output = tmp;
 }
 
 std::vector<int> Hausdorff2dDual::distanceList2dDual(Triangle::Label origin) {
@@ -34,7 +34,6 @@ std::vector<int> Hausdorff2dDual::distanceList2dDual(Triangle::Label origin) {
 
 	int currentDepth = 0;
 	do {
-
         for (auto t : thisDepth) {
             for (auto neighbor : t->trnbr) {
                if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
@@ -50,6 +49,6 @@ std::vector<int> Hausdorff2dDual::distanceList2dDual(Triangle::Label origin) {
         nextDepth.clear();
 		currentDepth++;
     } while (thisDepth.size() > 0);
-	
+
     return dsts;
 }

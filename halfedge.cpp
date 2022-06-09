@@ -2,5 +2,3 @@
 #include "vertex.hpp"
 #include "halfedge.hpp"
 #include "tetra.hpp"
-
-

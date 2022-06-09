@@ -13,7 +13,7 @@ bool Vertex::neighborsVertex(Vertex::Label v) {
 
 	std::unordered_map<int, bool> done;
 	done.reserve(v->cnum);
-	
+
 	std::vector<Tetra::Label> current = {t};
 	std::vector<Tetra::Label> next = {};
 

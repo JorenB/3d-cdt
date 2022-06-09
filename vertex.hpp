@@ -12,10 +12,9 @@ public:
 	int scnum;  // Spatial coordination number
 	int cnum;
 
-	Pool<Tetra>::Label tetra = -1; // Some (3,1)-simplex containing this vertex in its base
+	Pool<Tetra>::Label tetra = -1;  // Some 31-simplex containing this vertex in its base
 
 	bool neighborsVertex(Vertex::Label v);
 
 private:
-
 };

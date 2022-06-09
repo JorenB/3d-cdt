@@ -1,9 +1,10 @@
 // Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "observable.hpp"
 
-std::default_random_engine Observable::rng(0);  // TODO: seed properly
+std::default_random_engine Observable::rng(0);  // TODO(JorenB): seed properly
 std::string Observable::data_dir = "";
 std::vector<bool> Observable::doneL;
 
@@ -11,26 +12,22 @@ void Observable::write() {
     std::string filename = data_dir + "/" + name + "-" + identifier + extension;
 
 	std::ifstream infile(filename);
-	//if (!infile.good()) { printf("output file deleted\n"); exit(1); }
-	//infile.close();
 
     std::ofstream file;
-    file.open(filename, std::ios::app); // | std::ios::out);
+    file.open(filename, std::ios::app);
 
 	assert(file.is_open());
 
 	file << output << "\n";
 	file.close();
-
-//    std::cout << filename << "\n";
 }
 
 void Observable::clear() {
     std::string filename = data_dir + "/" + name + "-" + identifier + extension;
 
     std::ofstream file;
-    file.open(filename, std::ios::app);// | std::ios::trunc);
-	
+    file.open(filename, std::ios::app);
+
 	assert(file.is_open());
 
 	file.close();
@@ -105,6 +102,7 @@ std::vector<Vertex::Label> Observable::sphere2d(Vertex::Label origin, int radius
 }
 
 std::vector<Tetra::Label> Observable::sphereDual(Tetra::Label origin, int radius) {
+    // TODO(JorenB): optimize BFS (see sphere())
 	std::vector<Tetra::Label> done;
     std::vector<Tetra::Label> thisDepth;
     std::vector<Tetra::Label> nextDepth;
@@ -116,12 +114,11 @@ std::vector<Tetra::Label> Observable::sphereDual(Tetra::Label origin, int radius
 
     for (int currentDepth = 0; currentDepth < radius; currentDepth++) {
         for (auto t : thisDepth) {
-			//std::vector<Tetra::Label> tnbr = t->tnbr;
             for (auto neighbor : t->tnbr) {
                if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
                    nextDepth.push_back(neighbor);
                    done.push_back(neighbor);
-                   if(currentDepth == radius-1) tetraList.push_back(neighbor);
+                   if (currentDepth == radius - 1) tetraList.push_back(neighbor);
                }
             }
         }
@@ -130,7 +127,6 @@ std::vector<Tetra::Label> Observable::sphereDual(Tetra::Label origin, int radius
     }
 
     return tetraList;
-
 }
 
 std::vector<Triangle::Label> Observable::sphere2dDual(Triangle::Label origin, int radius) {
@@ -149,7 +145,7 @@ std::vector<Triangle::Label> Observable::sphere2dDual(Triangle::Label origin, in
                if (std::find(done.begin(), done.end(), neighbor) == done.end()) {
                    nextDepth.push_back(neighbor);
                    done.push_back(neighbor);
-                   if(currentDepth == radius-1) triangleList.push_back(neighbor);
+                   if (currentDepth == radius - 1) triangleList.push_back(neighbor);
                }
             }
         }

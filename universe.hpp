@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <random>
+#include <string>
 #include "vertex.hpp"
 #include "halfedge.hpp"
 #include "triangle.hpp"
@@ -21,12 +22,12 @@ public:
 	static int strictness;
 	static int volfix_switch;
 
-	static Bag<Tetra, Tetra::pool_size> tetrasAll;  // All tetrahedra. 
-	static Bag<Tetra, Tetra::pool_size> tetras31;  // All (3,1) tetrahedra. 
-	static Bag<Vertex, Vertex::pool_size> verticesAll;  // All vertices. 
+	static Bag<Tetra, Tetra::pool_size> tetrasAll;  // All tetrahedra.
+	static Bag<Tetra, Tetra::pool_size> tetras31;  // All 31-tetrahedra.
+	static Bag<Vertex, Vertex::pool_size> verticesAll;  // All vertices.
 	static Bag<Vertex, Vertex::pool_size> verticesSix;  // Vertices with six tetrahedra, suitable for (6,2)-move
 
-	static bool initialize(std::string geometryFilename, std::string fID, int strictness,int volfix_switch);
+	static bool initialize(std::string geometryFilename, std::string fID, int strictness, int volfix_switch);
 
 	static bool exportGeometry(std::string geometryFilename);
 
@@ -40,8 +41,6 @@ public:
 
 	static bool move23d(Tetra::Label t13, Tetra::Label t22);
 	static bool move32d(Tetra::Label t13, Tetra::Label t22l, Tetra::Label t22r);
-
-	static void updateVertexBags(Vertex::Label v);
 
 	static void updateVertexData();
 	static void updateHalfEdgeData();
@@ -60,9 +59,6 @@ public:
 
 	static void check();
 
-	static void exportGraph();
-	static void exportSliceGraph(int time);
-	
 private:
 	Universe() {}
 	static std::default_random_engine rng;
