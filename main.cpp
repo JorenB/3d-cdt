@@ -4,6 +4,7 @@
 #include "simulation.hpp"
 
 #include "observables/volume_profile.hpp"
+#include "observables/ricci2d.hpp"
 
 std::default_random_engine rng(1);
 
@@ -49,6 +50,9 @@ int main(int argc, const char * argv[]) {
 
 	VolumeProfile vp3(fID);
 	Simulation::addObservable3d(vp3);
+
+    Ricci2d ricci2d(fID);
+    Simulation::addObservable2d(ricci2d);
 
 	Simulation::start(k0, k3_s, sweeps, thermalSweeps, kSteps, targetVolume, target2Volume, seed, outFile, v1, v2, v3);
 
