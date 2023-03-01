@@ -8,7 +8,7 @@
 
 class Ricci2dDual : public Observable {
 public:
-	Ricci2dDual(std::string id) : Observable(id) { eps_max = 10; };
+	Ricci2dDual(std::string id) : Observable(id) { name = "ricci2d_dual"; eps_max = 10; };
 	Ricci2dDual(std::string id, int eps_max_) : Observable(id) { name = "ricci2d_dual"; eps_max = eps_max_; }
 
 	void process();
