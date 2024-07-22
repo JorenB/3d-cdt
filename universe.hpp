@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <string>
+#include "globals.hpp"
 #include "vertex.hpp"
 #include "halfedge.hpp"
 #include "triangle.hpp"
@@ -19,15 +20,15 @@ public:
 	static std::string fID;
 	static std::string OutFile;
 
-	static int strictness;
-	static int volfix_switch;
+	
+	//static int A1,A2,B1,B2,C,D;
 
 	static Bag<Tetra, Tetra::pool_size> tetrasAll;  // All tetrahedra.
 	static Bag<Tetra, Tetra::pool_size> tetras31;  // All 31-tetrahedra.
 	static Bag<Vertex, Vertex::pool_size> verticesAll;  // All vertices.
 	static Bag<Vertex, Vertex::pool_size> verticesSix;  // Vertices with six tetrahedra, suitable for (6,2)-move
 
-	static bool initialize(std::string geometryFilename, std::string fID, int strictness, int volfix_switch);
+	static bool initialize();
 
 	static bool exportGeometry(std::string geometryFilename);
 
@@ -56,8 +57,13 @@ public:
 	static std::vector<std::vector<Vertex::Label>> vertexNeighbors;
 	static std::vector<std::array<Triangle::Label, 3>> triangleNeighbors;
 
-
+	static int getMaxord();
+	static int getMaxordSlice();
+	
 	static void check();
+	
+	static void countABC();
+	static void InitABC();
 
 private:
 	Universe() {}

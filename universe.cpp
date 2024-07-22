@@ -1,16 +1,16 @@
 // Copyright 2021 Joren Brunekreef, Daniel Nemeth and Andrzej Görlich
+
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
+#include "globals.hpp"
 #include "universe.hpp"
 
 int Universe::nSlices = 0;
 std::vector<int> Universe::slabSizes;
 std::vector<int> Universe::sliceSizes;
 std::string Universe::fID;
-std::string Universe::OutFile;
-int Universe::strictness;
-int Universe::volfix_switch;
+
 std::default_random_engine Universe::rng(0);
 Bag<Tetra, Tetra::pool_size> Universe::tetrasAll(rng);
 Bag<Tetra, Tetra::pool_size> Universe::tetras31(rng);
@@ -27,19 +27,80 @@ std::vector<std::vector<Vertex::Label>> Universe::vertexNeighbors;
 std::vector<std::array<Triangle::Label, 3>> Universe::triangleNeighbors;
 
 
-bool Universe::initialize(std::string geometryFilename, std::string fID_, int strictness_, int volfix_switch_) {
-	fID = fID_;
-	std::ifstream infile(geometryFilename.c_str());
+void Universe:: InitABC() {
+	int dA1 = 0;
+	int dA2 = 0;
+	int dB1 = 0;
+	int dB2 = 0;
+	int dC = 0;
+	int dD = 0;
+	for (auto t : tetrasAll) {
+		for(int i = 0 ; i < 4 ; i++) {
+			if(t->is31() && t->getNeighborType(i) == 0) dA1++;
+			else if(t->is31() && t->getNeighborType(i) == 1) dB1++;
+			else if(t->is31() && t->getNeighborType(i) == 2) dC++;
+			
+			else if(t->is22() && t->getNeighborType(i) == 0) dB1++;
+			else if(t->is22() && t->getNeighborType(i) == 1) dD++;
+			else if(t->is22() && t->getNeighborType(i) == 2) dB2++;
+			
+			else if(t->is13() && t->getNeighborType(i) == 0) dC++;
+			else if(t->is13() && t->getNeighborType(i) == 1) dB2++;
+			else if(t->is13() && t->getNeighborType(i) == 2) dA2++;
+		}	
+	}
+	
+	A1 += int(dA1/2);
+	A2 += int(dA2/2);
+	B1 += int(dB1/2);
+	B2 += int(dB2/2);
+	C += int(dC/2);
+	D += int(dD/2);
+	
+	printf("Count ABCD: %d\t%d\t%d\t%d\t%d\t%d\t\n", A1,A2,B1,B2,C,D);
+}
+
+void Universe:: countABC() {
+	int dA1 = 0;
+	int dA2 = 0;
+	int dB1 = 0;
+	int dB2 = 0;
+	int dC = 0;
+	int dD = 0;
+	for (auto t : tetrasAll) {
+		for(int i = 0 ; i < 4 ; i++) {
+			if(t->is31() && t->getNeighborType(i) == 0) dA1++;
+			else if(t->is31() && t->getNeighborType(i) == 1) dB1++;
+			else if(t->is31() && t->getNeighborType(i) == 2) dC++;
+			
+			else if(t->is22() && t->getNeighborType(i) == 0) dB1++;
+			else if(t->is22() && t->getNeighborType(i) == 1) dD++;
+			else if(t->is22() && t->getNeighborType(i) == 2) dB2++;
+			
+			else if(t->is13() && t->getNeighborType(i) == 0) dC++;
+			else if(t->is13() && t->getNeighborType(i) == 1) dB2++;
+			else if(t->is13() && t->getNeighborType(i) == 2) dA2++;
+		}	
+	}
+	
+	dA1 = int(dA1/2);
+	dA2 = int(dA2/2);
+	dB1 = int(dB1/2);
+	dB2 = int(dB2/2);
+	dC = int(dC/2);
+	dD = int(dD/2);
+	
+	printf("Count ABCD: %d\t%d\t%d\t%d\t%d\t%d\t\n", dA1,dA2,dB1,dB2,dC,dD);
+}
+
+bool Universe::initialize() {
+	std::ifstream infile(inFile.c_str());
 
 	assert(!infile.fail());
-
-	strictness = strictness_;
-	volfix_switch = volfix_switch_;
 
 	bool ordered;  // first line is a switch indicating whether tetrahedron data is ordered by convention
 	infile >> ordered;
 
-	int n0;
 	infile >> n0;
 	printf("n0: %d\n", n0);
 	int line;
@@ -64,7 +125,6 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 	std::fill(slabSizes.begin(), slabSizes.end(), 0);
 	std::fill(sliceSizes.begin(), sliceSizes.end(), 0);
 
-	int n3;
 	infile >> n3;
 	printf("n3: %d\n", n3);
 	for (int i = 0; i < n3; i++) {
@@ -95,7 +155,7 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 	}
 	infile >> line;
 	if (line != n3) return false;
-	printf("read %s\n", geometryFilename.c_str());
+	printf("read %s\n", inFile.c_str());
 
 	if (!ordered) {
 		for (auto t : tetrasAll) {  // reorder to convention
@@ -127,7 +187,11 @@ bool Universe::initialize(std::string geometryFilename, std::string fID_, int st
 		v->scnum = scnum;
 		v->cnum = cnum;
 	}
+	
+	n31 = Universe::tetras31.size();
 
+	InitABC();
+	
 	return true;
 }
 
@@ -434,6 +498,21 @@ bool Universe::move62(Vertex::Label v) {
 
 	return true;
 }
+
+int Universe::getMaxord() {
+	int max = 0;
+	for (auto v : Universe::verticesAll) if(v->cnum > max) max=v->cnum;
+
+	return max;
+}
+
+int Universe::getMaxordSlice() {
+	int max = 0;
+	for (auto v : Universe::verticesAll) if(v->scnum > max) max=v->scnum;
+
+	return max;
+}
+
 
 bool Universe::move44(Tetra::Label t012, Tetra::Label t230) {
 	Vertex::Label v0, v1, v2, v3;
@@ -867,11 +946,7 @@ void Universe::updateVertexData() {
 			next.clear();
 		} while (current.size() > 0);
 
-		for (auto td : done) {
-			for (auto vd : td->vs) {
-				if (std::find(nbr.begin(), nbr.end(), vd) == nbr.end() && vd != v) nbr.push_back(vd);
-			}
-		}
+		for (auto td : done) { for (auto vd : td->vs) { if (std::find(nbr.begin(), nbr.end(), vd) == nbr.end() && vd != v) nbr.push_back(vd); } }
 
 		vertexNeighbors.at(v) = nbr;
 	}

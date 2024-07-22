@@ -9,7 +9,7 @@ std::string Observable::data_dir = "";
 std::vector<bool> Observable::doneL;
 
 void Observable::write() {
-    std::string filename = data_dir + "/" + name + "-" + identifier + extension;
+    std::string filename = name + "-" + identifier + extension;
 
 	std::ifstream infile(filename);
 
@@ -23,7 +23,7 @@ void Observable::write() {
 }
 
 void Observable::clear() {
-    std::string filename = data_dir + "/" + name + "-" + identifier + extension;
+    std::string filename = name + "-" + identifier + extension;
 
     std::ofstream file;
     file.open(filename, std::ios::app);
@@ -155,3 +155,6 @@ std::vector<Triangle::Label> Observable::sphere2dDual(Triangle::Label origin, in
 
     return triangleList;
 }
+
+
+

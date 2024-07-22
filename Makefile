@@ -1,5 +1,5 @@
 #CXX = /usr/local/opt/llvm/bin/clang++
-CXXFLAGS	:= -std=c++14 -O3 -Wno-format
+CXXFLAGS	:= -std=c++17 -O3 -Wno-format
 # Add more warnings
 # CXXFLAGS	+= -Wall -Wextra
 

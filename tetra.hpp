@@ -10,7 +10,7 @@
 class Tetra : public Pool<Tetra> {
 public:
 	static const unsigned pool_size = 5000000;
-	enum Type { THREEONE, ONETHREE, TWOTWO };
+	enum Type { THREEONE, TWOTWO, ONETHREE };
 	int time;  // Slab number
 
 	Type type;
@@ -18,11 +18,13 @@ public:
 	inline const char* ToString(Tetra::Type t) {
 		switch (t) {
 			case Tetra::Type::THREEONE: return "31";
-			case Tetra::Type::ONETHREE: return "13";
 			case Tetra::Type::TWOTWO: return "22";
+			case Tetra::Type::ONETHREE: return "13";
+
 		}
 	}
-
+	
+	
 	void setVertices(Pool<Vertex>::Label v0, Pool<Vertex>::Label v1, Pool<Vertex>::Label v2, Pool<Vertex>::Label v3) {
 		if (v0->time == v1->time && v0->time == v2->time) type = THREEONE;
 		if (v1->time == v2->time && v1->time == v3->time) type = ONETHREE;
@@ -33,58 +35,59 @@ public:
 
 		time = v0->time;
 	}
-
-	void setHalfEdges(Pool<HalfEdge>::Label h0, Pool<HalfEdge>::Label h1, Pool<HalfEdge>::Label h2) {
-		hes = {h0, h1, h2};
+	
+	Vertex::Label get31TimeVertex() {
+		if (vs[0]->time == vs[1]->time && vs[0]->time == vs[2]->time) return vs[3];
+		else if (vs[0]->time == vs[1]->time && vs[0]->time == vs[3]->time) return  vs[2];
+		else if (vs[0]->time == vs[2]->time && vs[0]->time == vs[3]->time) return  vs[1];
+		else return vs[0];
 	}
 
+	void setHalfEdges(Pool<HalfEdge>::Label h0, Pool<HalfEdge>::Label h1, Pool<HalfEdge>::Label h2) { hes = {h0, h1, h2}; }
+
 	HalfEdge::Label getHalfEdgeFrom(Vertex::Label v) {
-		for (int i = 0; i < 3; i++) {
-			if (hes[i]->vs[0] == v) return hes[i];
-		}
+		for (int i = 0; i < 3; i++) { if (hes[i]->vs[0] == v) return hes[i]; }
 
 		return false;
 	}
 
 	HalfEdge::Label getHalfEdgeTo(Vertex::Label v) {
-		for (int i = 0; i < 3; i++) {
-			if (hes[i]->vs[1] == v) return hes[i];
-		}
+		for (int i = 0; i < 3; i++) { if (hes[i]->vs[1] == v) return hes[i]; }
 
 		return false;
 	}
 
-	void setTetras(Pool<Tetra>::Label t0, Pool<Tetra>::Label t1, Pool<Tetra>::Label t2, Pool<Tetra>::Label t3) {
-		tnbr = {t0, t1, t2, t3};
-	}
+	void setTetras(Pool<Tetra>::Label t0, Pool<Tetra>::Label t1, Pool<Tetra>::Label t2, Pool<Tetra>::Label t3) { tnbr = {t0, t1, t2, t3}; }
 
 	bool is31() { return type == THREEONE; }
 	bool is13() { return type == ONETHREE; }
 	bool is22() { return type == TWOTWO; }
 
 	bool hasVertex(Pool<Vertex>::Label v) {
-		for (int i = 0; i < 4; i++) {
-			if (vs[i] == v) return true;
-		}
+		for (int i = 0; i < 4; i++) { if (vs[i] == v) return true; }
 		return false;
 	}
 
 	bool neighborsTetra(Pool<Tetra>::Label t) {
-		for (int i = 0; i < 4; i++) {
-			if (tnbr[i] == t) return true;
-		}
+		for (int i = 0; i < 4; i++) { if (tnbr[i] == t) return true; }
 
 		return false;
+	}
+	
+	int getNeighborType(int n) {
+		if(tnbr[n]->is31()) return 0;
+		if(tnbr[n]->is22()) return 1;
+		if(tnbr[n]->is13()) return 2;
 	}
 
 	Tetra::Label getTetraOpposite(Vertex::Label v) {
 		assert(hasVertex(v));
 
-		for (int i = 0; i < 4; i++) {
-			if (vs[i] == v) return tnbr[i];
-		}
+		for (int i = 0; i < 4; i++) if (vs[i] == v) return tnbr[i]; 
 		assert(false);
 	}
+	
+	int getIndexNeighborTetra(Tetra::Label t) { for (int i = 0; i < 4; i++) { if (tnbr[i] == t) return i; } }
 
 	Vertex::Label getVertexOpposite(Vertex::Label v) {
 		auto tn = getTetraOpposite(v);
@@ -98,26 +101,18 @@ public:
 			}
 		}
 
-		for (auto tnv : tn->vs) {
-			if ((tnv != face[0]) && (tnv != face[1]) && (tnv != face[2])) return tnv;
-		}
+		for (auto tnv : tn->vs) { if ((tnv != face[0]) && (tnv != face[1]) && (tnv != face[2])) return tnv; }
 
 		assert(false);
 	}
 
 	Vertex::Label getVertexOppositeTetra(Tetra::Label tn) {
-		for (int i = 0; i < 4; i++) {
-			if (tnbr[i] == tn) return vs[i];
-		}
+		for (int i = 0; i < 4; i++) { if (tnbr[i] == tn) return vs[i]; }
 
 		assert(false);
 	}
 
-	void exchangeTetraOpposite(Vertex::Label v, Tetra::Label tn) {
-		for (int i = 0; i < 4; i++) {
-			if (vs[i] == v) tnbr[i] = tn;
-		}
-	}
+	void exchangeTetraOpposite(Vertex::Label v, Tetra::Label tn) { for (int i = 0; i < 4; i++) { if (vs[i] == v) tnbr[i] = tn; } }
 
 
 
