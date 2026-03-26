@@ -69,6 +69,18 @@ public:
 		return false;
 	}
 
+	bool hasEdge(Pool<Vertex>::Label v0, Pool<Vertex>::Label v1) {
+		bool hasv0 = false;
+		bool hasv1 = false;
+
+		for (int i = 0; i < 4; i++) {
+			if (vs[i] == v0) hasv0 = true;
+			if (vs[i] == v1) hasv1 = true;
+		}
+
+		return hasv0 && hasv1;
+	}
+
 	bool neighborsTetra(Pool<Tetra>::Label t) {
 		for (int i = 0; i < 4; i++) {
 			if (tnbr[i] == t) return true;

@@ -654,6 +654,16 @@ bool Universe::move32u(Tetra::Label t31, Tetra::Label t22l, Tetra::Label t22r) {
 	if (ta124->hasVertex(v3)) return false;
 	if (ta134->hasVertex(v2)) return false;
 
+	if (strictness >= 3) {
+		// Check if to be newly created triangle (234) does not already exist.
+		// 
+		// Required for combinatorial ensemble (so using strictness>=3), do not
+		// know how this fits in with the considered degenerate ensembles (if 
+		// this check also may apply for strictness < 3).
+
+		if (v2->formsTriangle(t22r, v3, v4)) return false;
+	}
+
 	auto tn31 = Tetra::create();
 	auto tn22 = Tetra::create();
 
@@ -798,6 +808,16 @@ bool Universe::move32d(Tetra::Label t13, Tetra::Label t22l, Tetra::Label t22r) {
 	if (ta034->hasVertex(v2)) return false;
 	if (ta124->hasVertex(v3)) return false;
 	if (ta134->hasVertex(v2)) return false;
+
+	if (strictness >= 3) {
+		// Check if to be newly created triangle (234) does not already exist.
+		// 
+		// Required for combinatorial ensemble (so using strictness>=3), do not
+		// know how this fits in with the considered degenerate ensembles (if 
+		// this check also may apply for strictness < 3).
+
+		if (v2->formsTriangle(t22r, v3, v4)) return false;
+	}
 
 	auto tn13 = Tetra::create();
 	auto tn22 = Tetra::create();
